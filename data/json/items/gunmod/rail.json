@@ -2,12 +2,11 @@
   {
     "id": "gun_crossbow",
     "type": "GUNMOD",
-    "name": { "str": "rail-mounted crossbow" },
+    "name": "rail-mounted crossbow",
     "description": "A kit to attach a pair of crossbow arms and a firing rail to the barrel of a long firearm.  It allows crossbow bolts to be fired.",
-    "weight": "1450 g",
-    "volume": "500 ml",
+    "weight": 1450,
+    "volume": 2,
     "price": 50000,
-    "price_postapoc": 1500,
     "material": [ "steel", "wood" ],
     "symbol": ":",
     "color": "light_red",
@@ -17,29 +16,21 @@
       "ammo": "bolt",
       "skill": "rifle",
       "range": 8,
-      "ranged_damage": { "damage_type": "stab", "amount": 3 },
+      "ranged_damage": 12,
       "dispersion": 180,
       "durability": 10,
       "clip_size": 1
     },
     "dispersion_modifier": 60,
-    "min_skills": [ [ "weapon", 2 ], [ "rifle", 1 ] ],
-    "flags": [ "NON-FOULING" ],
-    "pocket_data": [ { "pocket_type": "MAGAZINE", "ammo_restriction": { "bolt": 1 } } ]
-  },
-  {
-    "id": "gun_crossbow_mod",
-    "copy-from": "gun_crossbow",
-    "type": "GUNMOD",
-    "name": { "str": "modified rail-mounted crossbow" },
-    "description": "A kit to attach a pair of crossbow arms and a firing rail to the barrel of a long firearm.  It allows crossbow bolts to be fired.  This one was modified and customized to mount on pretty much any weapon other than pistols and SMGs, if you so want.",
-    "mod_targets": [ "rifle", "shotgun", "launcher", "crossbow" ]
+    "min_skills": [ [ "weapon", 2 ], [ "archery", 1 ] ],
+    "flags": [ "STR_RELOAD" ]
   },
   {
     "id": "offset_sights",
     "copy-from": "improve_sights",
     "type": "GUNMOD",
-    "name": { "str_sp": "offset iron sights" },
+    "name": "offset iron sights",
+    "name_plural": "offset iron sights",
     "description": "An alternative set of iron sights mounted at 45° for use when a scope or other modification prevents use of the primary sights.",
     "location": "rail",
     "mod_targets": [ "smg", "rifle", "shotgun" ],
@@ -48,22 +39,13 @@
     "delete": { "flags": [ "DISABLE_SIGHTS" ] }
   },
   {
-    "id": "offset_sights_mod",
-    "copy-from": "offset_sights",
-    "type": "GUNMOD",
-    "name": { "str_sp": "modified offset iron sights" },
-    "description": "An alternative set of iron sights mounted at 45° for use when a scope or other modification prevents use of the primary sights.  This one was modified and customized to mount on pretty much any weapon, if you so want.",
-    "mod_targets": [ "pistol", "smg", "rifle", "shotgun", "launcher", "crossbow" ]
-  },
-  {
     "id": "offset_sight_rail",
     "type": "GUNMOD",
-    "name": { "str": "offset sight rail" },
+    "name": "offset sight rail",
     "description": "An additional rail set at 45° for attaching a secondary optic.",
-    "weight": "40 g",
+    "weight": 40,
     "volume": "125ml",
     "price": 6000,
-    "price_postapoc": 500,
     "material": [ "steel" ],
     "symbol": ":",
     "color": "light_gray",
@@ -73,23 +55,14 @@
     "add_mod": [ [ "sights", 1 ] ]
   },
   {
-    "id": "offset_sight_rail_mod",
-    "copy-from": "offset_sight_rail",
-    "type": "GUNMOD",
-    "name": { "str": "modified offset sight rail" },
-    "description": "An additional rail set at 45° for attaching a secondary optic.  This one was modified and customized to mount on pretty much any weapon, if you so want.",
-    "mod_targets": [ "pistol", "smg", "rifle", "shotgun", "launcher", "crossbow" ]
-  },
-  {
     "id": "rail_laser_sight",
     "type": "GUNMOD",
-    "name": { "str": "rail laser sight" },
+    "name": "rail laser sight",
     "description": "A small visible-light laser that mounts on a firearm's accessory rail to enhance ease and speed of target acquisition.  Aside from increased weight, there are no drawbacks.",
-    "weight": "120 g",
-    "volume": "250 ml",
-    "integral_volume": "0 ml",
+    "weight": 120,
+    "volume": 1,
+    "integral_volume": 0,
     "price": 12000,
-    "price_postapoc": 500,
     "material": [ "plastic", "steel" ],
     "symbol": ":",
     "color": "dark_gray",
@@ -102,13 +75,12 @@
   {
     "id": "stabilizer",
     "type": "GUNMOD",
-    "name": { "str": "gyroscopic stabilizer" },
+    "name": "gyroscopic stabilizer",
     "description": "An advanced unit that straps onto the side of your firearm and reduces vibration, greatly reducing recoil and slightly increasing accuracy.",
-    "weight": "286 g",
-    "volume": "750 ml",
-    "integral_volume": "500 ml",
+    "weight": 286,
+    "volume": 3,
+    "integral_volume": 2,
     "price": 68000,
-    "price_postapoc": 750,
     "material": [ "aluminum", "plastic" ],
     "symbol": ":",
     "color": "blue",
@@ -119,11 +91,14 @@
     "min_skills": [ [ "weapon", 6 ] ]
   },
   {
-    "id": "stabilizer_mod",
+    "id": "lead_stabilizer",
     "copy-from": "stabilizer",
     "type": "GUNMOD",
-    "name": { "str": "modified gyroscopic stabilizer" },
-    "description": "An advanced unit that straps onto the side of your firearm and reduces vibration, greatly reducing recoil and slightly increasing accuracy.  This one was modified and customized to mount on pretty much any weapon other than pistols, if you so want.",
-    "mod_targets": [ "smg", "rifle", "shotgun", "launcher", "crossbow" ]
+    "name": "LW gyroscopic stabilizer",
+    "description": "An advanced Leadworks built in gyroscopic stabilizer.",
+    "weight": 0,
+    "volume": 0,
+    "price": 0,
+    "flags": [ "IRREMOVABLE" ]
   }
 ]

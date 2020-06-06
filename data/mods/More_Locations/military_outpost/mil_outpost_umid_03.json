@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_umid" ],
-    "//": "underground middle",
+    "comment": "underground middle",
     "method": "json",
     "weight": 250,
     "object": {

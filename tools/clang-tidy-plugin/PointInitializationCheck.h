@@ -1,5 +1,5 @@
-#ifndef CATA_TOOLS_CLANG_TIDY_PLUGIN_POINTINITIALIZATIONCHECK_H
-#define CATA_TOOLS_CLANG_TIDY_PLUGIN_POINTINITIALIZATIONCHECK_H
+#ifndef CATA_TOOLS_CLANG_TIDY_POINTINITIALIZATIONCHECK_H
+#define CATA_TOOLS_CLANG_TIDY_POINTINITIALIZATIONCHECK_H
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <llvm/ADT/StringRef.h>
@@ -8,6 +8,7 @@
 
 namespace clang
 {
+class CompilerInstance;
 
 namespace tidy
 {
@@ -29,4 +30,4 @@ class PointInitializationCheck : public ClangTidyCheck
 } // namespace tidy
 } // namespace clang
 
-#endif // CATA_TOOLS_CLANG_TIDY_PLUGIN_POINTINITIALIZATIONCHECK_H
+#endif // CATA_TOOLS_CLANG_TIDY_POINTINITIALIZATIONCHECK_H

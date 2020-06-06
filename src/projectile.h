@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_PROJECTILE_H
-#define CATA_SRC_PROJECTILE_H
+#ifndef PROJECTILE_H
+#define PROJECTILE_H
 
 #include <memory>
 #include <set>
@@ -19,7 +19,6 @@ struct projectile {
         // bullets have arbitrarily high values but thrown objects have dodgeable values.
         int speed;
         int range;
-        float critical_multiplier;
 
         std::set<std::string> proj_effects;
 
@@ -59,6 +58,6 @@ struct dealt_projectile_attack {
 };
 
 void apply_ammo_effects( const tripoint &p, const std::set<std::string> &effects );
-int max_aoe_size( const std::set<std::string> &tags );
+int aoe_size( const std::set<std::string> &tags );
 
-#endif // CATA_SRC_PROJECTILE_H
+#endif

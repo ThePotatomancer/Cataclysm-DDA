@@ -1,22 +1,18 @@
 #pragma once
-#ifndef CATA_SRC_LOADING_UI_H
-#define CATA_SRC_LOADING_UI_H
+#ifndef LOADING_UI_H
+#define LOADING_UI_H
 
 #include <memory>
+#include <vector>
 #include <string>
 
-class background_pane;
-class ui_adaptor;
 class uilist;
 
 class loading_ui
 {
     private:
         std::unique_ptr<uilist> menu;
-        std::unique_ptr<ui_adaptor> ui;
-        std::unique_ptr<background_pane> ui_background;
-
-        void init();
+        std::vector<std::string> entries;
     public:
         loading_ui( bool display );
         ~loading_ui();
@@ -30,14 +26,13 @@ class loading_ui
          */
         void add_entry( const std::string &description );
         /**
-         * Place the UI onto UI stack, mark current entry as processed, scroll down,
-         * and redraw. (if display is enabled)
+         * Marks current entry as processed and scrolls down.
          */
         void proceed();
         /**
-         * Place the UI onto UI stack and redraw it on the screen (if display is enabled).
+         * Shows the UI on the screen (if display is enabled).
          */
         void show();
 };
 
-#endif // CATA_SRC_LOADING_UI_H
+#endif

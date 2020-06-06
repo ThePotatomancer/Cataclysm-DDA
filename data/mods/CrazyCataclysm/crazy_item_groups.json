@@ -24,10 +24,5 @@
     "type": "item_group",
     "id": "bionics_op",
     "items": [ [ "bio_chest_gun", 1 ] ]
-  },
-  {
-    "type": "item_group",
-    "id": "guns_pistol_common",
-    "items": [ [ "yeet_cannon", 12 ] ]
   }
 ]

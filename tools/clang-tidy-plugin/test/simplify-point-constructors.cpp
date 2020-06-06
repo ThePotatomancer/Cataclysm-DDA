@@ -1,7 +1,22 @@
-// RUN: %check_clang_tidy %s cata-simplify-point-constructors %t -- -plugins=%cata_plugin -- -isystem %cata_include
+// RUN: %check_clang_tidy %s cata-simplify-point-constructors %t -- -plugins=%cata_plugin -- -isystem %src_dir
 
-#define CATA_NO_STL
-#include "point.h"
+// Can't include the real point header because this is compiled with
+// -nostdinc++ and I couldn't see an easy way to change that.
+struct point {
+    constexpr point() : x( 0 ), y( 0 ) {}
+    constexpr point( int x, int y );
+
+    int x;
+    int y;
+};
+struct tripoint {
+    constexpr tripoint() : x( 0 ), y( 0 ), z( 0 ) {}
+    constexpr tripoint( int x, int y, int z );
+
+    int x;
+    int y;
+    int z;
+};
 
 point p0;
 point p0a( p0.x, p0.y );
@@ -55,12 +70,3 @@ int f9( const point & );
 int i9 = f9( point( p9.x, p9.y ) );
 // CHECK-MESSAGES: warning: Construction of 'point' can be simplified. [cata-simplify-point-constructors]
 // CHECK-FIXES: int i9 = f9( p9 );
-
-struct A10 {
-    point *operator->() const;
-};
-A10 a10;
-int f10( const point & );
-int i10 = f10( point( a10->x, a10->y ) );
-// CHECK-MESSAGES: warning: Construction of 'point' can be simplified. [cata-simplify-point-constructors]
-// CHECK-FIXES: int i10 = f10( *a10 );

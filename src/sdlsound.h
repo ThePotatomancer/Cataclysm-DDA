@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_SDLSOUND_H
-#define CATA_SRC_SDLSOUND_H
+#ifndef SDL_SOUND_H
+#define SDL_SOUND_H
 
 #include <string>
 #if defined(SDL_SOUND)
@@ -22,12 +22,13 @@ inline bool init_sound()
     return false;
 }
 inline void shutdown_sound() { }
-inline void play_music( const std::string &/*playlist*/ )
+inline void play_music( const std::string &playlist )
 {
+    ( void )playlist;
 }
 inline void update_music_volume() { }
 inline void load_soundset() { }
 
 #endif
 
-#endif // CATA_SRC_SDLSOUND_H
+#endif

@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_yle" ],
-    "//": "outer yard left edge",
+    "comment": "outer yard left edge",
     "method": "json",
     "weight": 250,
     "object": {

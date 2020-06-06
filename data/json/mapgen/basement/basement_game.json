@@ -3,7 +3,6 @@
     "type": "mapgen",
     "method": "json",
     "om_terrain": [ "basement" ],
-    "//": "used by house_31 and house_32 and house_32",
     "weight": 250,
     "object": {
       "rotation": [ 0, 3 ],
@@ -55,7 +54,6 @@
     "type": "mapgen",
     "method": "json",
     "om_terrain": [ "basement" ],
-    "//": "used by house_31 and house_32",
     "weight": 250,
     "object": {
       "rotation": [ 0, 3 ],
@@ -107,7 +105,6 @@
     "type": "mapgen",
     "method": "json",
     "om_terrain": [ "basement" ],
-    "//": "used by house_31 and house_32",
     "weight": 250,
     "object": {
       "rotation": [ 0, 3 ],
@@ -157,7 +154,6 @@
     "type": "mapgen",
     "method": "json",
     "om_terrain": [ "basement" ],
-    "//": "used by house_31 and house_32",
     "weight": 250,
     "object": {
       "rotation": [ 0, 3 ],
@@ -207,7 +203,6 @@
     "type": "mapgen",
     "method": "json",
     "om_terrain": [ "basement" ],
-    "//": "used by house_31 and house_32",
     "weight": 250,
     "object": {
       "rotation": [ 0, 3 ],

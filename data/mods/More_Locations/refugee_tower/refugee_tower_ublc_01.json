@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": "refugee_tower_ublc",
-    "//": "underground, bottom left corner",
+    "comment": "underground, bottom left corner",
     "weight": 250,
     "method": "json",
     "object": {

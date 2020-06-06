@@ -1,21 +1,24 @@
 #pragma once
-#ifndef CATA_SRC_MORALE_TYPES_H
-#define CATA_SRC_MORALE_TYPES_H
+#ifndef MORALE_TYPES_H
+#define MORALE_TYPES_H
 
 #include <string>
 
-#include "translations.h"
+#include "string_id.h"
 #include "type_id.h"
 
 class JsonObject;
+
 struct itype;
 
 class morale_type_data
 {
     private:
         bool permanent = false;
-        // May contain '%s' format string
-        translation text;
+        // Translated, may contain '%s' format string
+        std::string text;
+        // If true, this morale type needs an item paired with every instance
+        bool needs_item = false;
     public:
         morale_type id;
         bool was_loaded = false;
@@ -26,10 +29,10 @@ class morale_type_data
             return permanent;
         }
 
-        void load( const JsonObject &jo, const std::string &src );
+        void load( JsonObject &jo, const std::string &src );
         void check() const;
 
-        static void load_type( const JsonObject &jo, const std::string &src );
+        static void load_type( JsonObject &jo, const std::string &src );
         static void check_all();
         static void reset();
 
@@ -115,4 +118,4 @@ extern const morale_type MORALE_TREE_COMMUNION;
 extern const morale_type MORALE_ACCOMPLISHMENT;
 extern const morale_type MORALE_FAILURE;
 
-#endif // CATA_SRC_MORALE_TYPES_H
+#endif

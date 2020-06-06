@@ -3,7 +3,7 @@
     "type": "palette",
     "id": "airliner_palette",
     "terrain": {
-      " ": "t_region_groundcover_urban",
+      " ": [ [ "t_grass", 40 ], [ "t_grass_long", 6 ], [ "t_dirt", 10 ] ],
       "A": "t_open_air",
       ",": "t_rock",
       "d": "t_dirtmound",

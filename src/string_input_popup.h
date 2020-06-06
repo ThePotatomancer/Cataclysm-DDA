@@ -1,14 +1,13 @@
 #pragma once
-#ifndef CATA_SRC_STRING_INPUT_POPUP_H
-#define CATA_SRC_STRING_INPUT_POPUP_H
+#ifndef STRING_INPUT_POPUP_H
+#define STRING_INPUT_POPUP_H
 
+#include <stdint.h>
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "color.h"
 #include "cursesdef.h"
@@ -67,14 +66,6 @@ class string_input_popup // NOLINT(cata-xy)
         //Counts only when @_hist_use_uilist is false
         const size_t _hist_max_size = 100;
 
-        // Cache when using the default window
-        int w_width = 0;
-        int w_height = 0;
-        std::vector<std::string> descformatted;
-        std::vector<std::string> title_split;
-        int titlesize = 0;
-
-        bool custom_window = false;
         catacurses::window w;
 
         std::unique_ptr<input_context> ctxt_ptr;
@@ -104,7 +95,7 @@ class string_input_popup // NOLINT(cata-xy)
         }
         /**
          * Set / get the text that can be modified by the user.
-         * Note that canceling the query makes this an empty string.
+         * Note that cancelling the query makes this an empty string.
          * It's optional default is an empty string.
          */
         /**@{*/
@@ -170,11 +161,8 @@ class string_input_popup // NOLINT(cata-xy)
          * text will be printed at the given part of the given window.
          * Integer parameters define the area (one line) where the editable
          * text is printed.
-         *
-         * This method only has effect before the default window is initialized.
-         * After that calls to this method are just ignored.
          */
-        string_input_popup &window( const catacurses::window &w, const point &start, int endx );
+        string_input_popup &window( const catacurses::window &w, int startx, int starty, int endx );
         /**
          * Set / get the input context that is used to gather user input.
          * The class will create its own context if none is set here.
@@ -253,7 +241,7 @@ class string_input_popup // NOLINT(cata-xy)
          * Edit values in place. This combines: calls to @ref text to set the
          * current value, @ref query to get user input and setting the
          * value back into the parameter object (when the popup was not
-         * canceled). Canceling the popup keeps the value unmodified.
+         * canceled). Cancelling the popup keeps the value unmodified.
          */
         /**@{*/
         void edit( std::string &value );
@@ -266,4 +254,4 @@ class string_input_popup // NOLINT(cata-xy)
         std::map<long, std::function<bool()>> callbacks;
 };
 
-#endif // CATA_SRC_STRING_INPUT_POPUP_H
+#endif

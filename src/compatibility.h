@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_COMPATIBILITY_H
-#define CATA_SRC_COMPATIBILITY_H
+#ifndef CATA_COMPATIBILITY_H
+#define CATA_COMPATIBILITY_H
 
 //--------------------------------------------------------------------------------------------------
 // HACK:
@@ -27,7 +27,6 @@
 #include <cstdio>
 #include <limits>
 
-// NOLINTNEXTLINE(cata-no-long)
 inline std::string to_string( const long n )
 {
     //- and \0
@@ -37,7 +36,6 @@ inline std::string to_string( const long n )
     return buffer;
 }
 
-// NOLINTNEXTLINE(cata-no-long)
 inline std::string to_string( const unsigned long n )
 {
     //- and \0
@@ -119,7 +117,7 @@ template < typename T, typename std::enable_if < std::is_arithmetic<T>::value &&
            !std::is_same<T, bool>::value &&!std::is_same<T, wchar_t>::value &&
            !std::is_same<T, char>::value &&!std::is_same<T, char16_t>::value &&
            !std::is_same<T, char32_t>::value >::type * = nullptr >
-std::string to_string( T n )
+std::string to_string( const T n )
 {
     return std::to_string( n );
 }
@@ -135,4 +133,4 @@ inline void std::advance( I iter, int num )
 }
 #endif //CATA_NO_ADVANCE
 
-#endif // CATA_SRC_COMPATIBILITY_H
+#endif //CATA_COMPATIBILITY_H

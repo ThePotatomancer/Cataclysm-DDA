@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_1brc" ],
-    "//": "first floor bottom right corner",
+    "comment": "first floor bottom right corner",
     "method": "json",
     "weight": 0,
     "object": {

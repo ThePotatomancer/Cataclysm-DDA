@@ -1,14 +1,12 @@
 #pragma once
-#ifndef CATA_SRC_GAME_INVENTORY_H
-#define CATA_SRC_GAME_INVENTORY_H
+#ifndef GAME_INVENTORY_H
+#define GAME_INVENTORY_H
 
-#include <functional>
 #include <list>
-#include <string>
+#include <functional>
 #include <utility>
 
 #include "inventory_ui.h"
-#include "item_location.h"
 
 struct tripoint;
 
@@ -19,14 +17,12 @@ class optional;
 } // namespace cata
 class avatar;
 class item;
+class item_location;
 class player;
-class repair_item_actor;
 class salvage_actor;
+class repair_item_actor;
 
-using item_filter = std::function<bool( const item & )>;
 using item_location_filter = std::function<bool ( const item_location & )>;
-using drop_location = std::pair<item_location, int>;
-using drop_locations = std::list<drop_location>;
 
 class inventory_filter_preset : public inventory_selector_preset
 {
@@ -43,14 +39,6 @@ namespace game_menus
 
 namespace inv
 {
-// item selector for all items in @you's inventory.
-item_location titled_menu( avatar &you, const std::string &title,
-                           const std::string &none_message = "" );
-// item selector for items in @you's inventory with a filter
-item_location titled_filter_menu( const item_filter &filter, avatar &you,
-                                  const std::string &title, const std::string &none_message = "" );
-item_location titled_filter_menu( const item_location_filter &filter, avatar &you,
-                                  const std::string &title, const std::string &none_message = "" );
 
 /**
 * @name Customized inventory menus
@@ -64,16 +52,15 @@ item_location titled_filter_menu( const item_location_filter &filter, avatar &yo
 /*@{*/
 
 void common( avatar &you );
-void common( item_location &loc, avatar &you );
 void compare( player &p, const cata::optional<tripoint> &offset );
 void reassign_letter( player &p, item &it );
 void swap_letters( player &p );
 
 /**
  * Select items to drop.
- * @return A list of pairs of item_location, quantity.
+ * @return A list of pairs of position, quantity.
  */
-drop_locations multidrop( player &p );
+std::list<std::pair<int, int>> multidrop( player &p );
 
 /** Consuming an item. */
 item_location consume( player &p );
@@ -90,7 +77,7 @@ item_location disassemble( player &p );
 /** Gunmod installation menu. */
 item_location gun_to_modify( player &p, const item &gunmod );
 /** Book reading menu. */
-item_location read( player &pl );
+item_location read( avatar &you );
 /** Menu for stealing stuff. */
 item_location steal( avatar &you, player &victim );
 /** Item activation menu. */
@@ -98,8 +85,7 @@ item_location use( avatar &you );
 /** Item wielding/unwielding menu. */
 item_location wield( avatar &you );
 /** Item wielding/unwielding menu. */
-drop_locations holster( player &p, const item_location &holster );
-void insert_items( avatar &you, item_location &holster );
+item_location holster( player &p, item &holster );
 /** Choosing a gun to saw down it's barrel. */
 item_location saw_barrel( player &p, item &tool );
 /** Choose item to wear. */
@@ -122,4 +108,4 @@ item_location sterilize_cbm( player &p );
 
 } // namespace game_menus
 
-#endif // CATA_SRC_GAME_INVENTORY_H
+#endif // GAME_INVENTORY_H

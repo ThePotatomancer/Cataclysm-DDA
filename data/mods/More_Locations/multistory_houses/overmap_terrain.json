@@ -7,7 +7,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -57,7 +58,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -107,7 +109,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -157,7 +160,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -207,7 +211,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -257,7 +262,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -307,7 +313,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -347,7 +354,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -387,7 +395,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -427,7 +436,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -467,7 +477,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -507,7 +518,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -547,7 +559,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -587,7 +600,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -597,7 +611,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -617,7 +632,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -657,7 +673,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -667,7 +684,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -687,7 +705,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -727,7 +746,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",
@@ -737,7 +757,8 @@
     "color": "light_green",
     "extras": "build",
     "see_cost": 2,
-    "mondensity": 2
+    "mondensity": 2,
+    "sidewalk": true
   },
   {
     "type": "overmap_terrain",

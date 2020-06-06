@@ -1,13 +1,12 @@
-#include <algorithm>
-#include <array>
-#include <cstddef>
+#include <stddef.h>
 #include <sstream>
+#include <array>
 #include <vector>
 
-#include "calendar.h"
 #include "catch/catch.hpp"
-#include "enums.h"
 #include "npc.h"
+#include "calendar.h"
+#include "enums.h"
 
 static void test_diet( const time_duration &dur, npc &dude,
                        const std::array<int, 4> &hmod_changes_per_day, int min, int max )

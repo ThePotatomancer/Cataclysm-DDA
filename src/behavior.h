@@ -1,10 +1,9 @@
 #pragma once
-#ifndef CATA_SRC_BEHAVIOR_H
-#define CATA_SRC_BEHAVIOR_H
+#ifndef BEHAVIOR_H
+#define BEHAVIOR_H
 
 #include <functional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "string_id.h"
@@ -18,7 +17,7 @@ class oracle_t;
 class node_t;
 class strategy_t;
 
-enum class status_t : char { running, success, failure };
+enum status_t : char { running, success, failure };
 struct behavior_return {
     status_t result;
     const node_t *selection;
@@ -56,34 +55,32 @@ class tree
 class node_t
 {
     public:
-        node_t() = default;
+        node_t();
         // Entry point for tree traversal.
         behavior_return tick( const oracle_t *subject ) const;
         std::string goal() const;
 
         // Interface to construct a node.
         void set_strategy( const strategy_t *new_strategy );
-        void add_predicate( std::function < status_t ( const oracle_t *, const std::string & )>
-                            new_predicate, const std::string &argument = "" );
+        void set_predicate( std::function < status_t ( const oracle_t * )> new_predicate );
         void set_goal( const std::string &new_goal );
         void add_child( const node_t *new_child );
 
         // Loading interface.
-        void load( const JsonObject &jo, const std::string &src );
+        void load( JsonObject &jo, const std::string &src );
         void check() const;
         string_id<node_t> id;
         bool was_loaded = false;
     private:
         std::vector<const node_t *> children;
-        const strategy_t *strategy = nullptr;
-        using predicate_type = std::function<status_t( const oracle_t *, const std::string & )>;
-        std::vector<std::pair<predicate_type, std::string>> conditions;
+        const strategy_t *strategy;
+        std::function<status_t( const oracle_t * )> predicate;
         // TODO: make into an ID?
         std::string _goal;
 };
 
 // Deserialization support.
-void load_behavior( const JsonObject &jo, const std::string &src );
+void load_behavior( JsonObject &jo, const std::string &src );
 
 void reset();
 
@@ -93,4 +90,4 @@ void check_consistency();
 
 } // namespace behavior
 
-#endif // CATA_SRC_BEHAVIOR_H
+#endif

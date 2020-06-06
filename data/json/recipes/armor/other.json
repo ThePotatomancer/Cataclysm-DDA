@@ -6,6 +6,7 @@
     "subcategory": "CSC_ARMOR_OTHER",
     "skill_used": "tailor",
     "time": "80 m",
+    "reversible": true,
     "autolearn": true,
     "using": [ [ "sewing_standard", 20 ] ],
     "components": [ [ [ "rag", 35 ] ] ]
@@ -32,9 +33,8 @@
     "difficulty": 6,
     "time": "120 m",
     "book_learn": [ [ "jewelry_book", 6 ] ],
-    "using": [ [ "blacksmithing_standard", 3 ] ],
-    "qualities": [ { "id": "CHISEL", "level": 3 } ],
-    "tools": [ [ [ "swage", -1 ] ] ],
+    "qualities": [ { "id": "ANVIL", "level": 3 }, { "id": "HAMMER", "level": 3 }, { "id": "CHISEL", "level": 3 } ],
+    "tools": [ [ [ "tongs", -1 ] ], [ [ "swage", -1 ] ], [ [ "forge", 50 ], [ "oxy_torch", 10 ] ] ],
     "components": [ [ [ "gold_small", 3 ] ] ]
   },
   {
@@ -46,27 +46,24 @@
     "difficulty": 6,
     "time": "120 m",
     "book_learn": [ [ "jewelry_book", 6 ] ],
-    "using": [ [ "blacksmithing_standard", 3 ] ],
-    "qualities": [ { "id": "CHISEL", "level": 3 } ],
-    "tools": [ [ [ "swage", -1 ] ] ],
+    "qualities": [ { "id": "ANVIL", "level": 3 }, { "id": "HAMMER", "level": 3 }, { "id": "CHISEL", "level": 3 } ],
+    "tools": [ [ [ "tongs", -1 ] ], [ [ "swage", -1 ] ], [ [ "forge", 50 ], [ "oxy_torch", 10 ] ] ],
     "components": [ [ [ "gold_small", 12 ] ] ]
   },
   {
     "result": "copper_bracelet",
-    "type": "recipe",
     "category": "CC_ARMOR",
     "subcategory": "CSC_ARMOR_OTHER",
     "skill_used": "fabrication",
     "difficulty": 6,
     "time": "120 m",
     "book_learn": [ [ "jewelry_book", 6 ] ],
-    "using": [ [ "blacksmithing_standard", 3 ] ],
-    "qualities": [ { "id": "CHISEL", "level": 3 } ],
-    "tools": [ [ [ "swage", -1 ] ] ],
-    "components": [ [ [ "copper_scrap_equivalent", 2, "LIST" ] ] ]
+    "qualities": [ { "id": "ANVIL", "level": 3 }, { "id": "HAMMER", "level": 3 }, { "id": "CHISEL", "level": 3 } ],
+    "tools": [ [ [ "tongs", -1 ] ], [ [ "swage", -1 ] ], [ [ "forge", 50 ], [ "oxy_torch", 10 ] ] ],
+    "type": "recipe",
+    "components": [ [ [ "copper", 60 ] ] ]
   },
   {
-    "type": "recipe",
     "result": "silver_bracelet",
     "category": "CC_ARMOR",
     "subcategory": "CSC_ARMOR_OTHER",
@@ -74,13 +71,12 @@
     "difficulty": 6,
     "time": "120 m",
     "book_learn": [ [ "jewelry_book", 6 ] ],
-    "using": [ [ "blacksmithing_standard", 3 ] ],
-    "qualities": [ { "id": "CHISEL", "level": 3 } ],
-    "tools": [ [ [ "swage", -1 ] ] ],
+    "qualities": [ { "id": "ANVIL", "level": 3 }, { "id": "HAMMER", "level": 3 }, { "id": "CHISEL", "level": 3 } ],
+    "tools": [ [ [ "tongs", -1 ] ], [ [ "swage", -1 ] ], [ [ "forge", 50 ], [ "oxy_torch", 10 ] ] ],
+    "type": "recipe",
     "components": [ [ [ "silver_small", 15 ] ] ]
   },
   {
-    "type": "recipe",
     "result": "bead_bracelet",
     "category": "CC_ARMOR",
     "subcategory": "CSC_ARMOR_OTHER",
@@ -88,7 +84,8 @@
     "time": "10 m",
     "reversible": true,
     "autolearn": true,
-    "components": [ [ [ "wooden_bead", 10 ] ], [ [ "cordage_short", 1, "LIST" ] ] ]
+    "type": "recipe",
+    "components": [ [ [ "wooden_bead", 10 ] ], [ [ "string_6", 1 ] ] ]
   },
   {
     "result": "bead_necklace",
@@ -99,7 +96,7 @@
     "reversible": true,
     "autolearn": true,
     "type": "recipe",
-    "components": [ [ [ "wooden_bead", 30 ] ], [ [ "cordage", 1, "LIST" ] ] ]
+    "components": [ [ [ "wooden_bead", 30 ] ], [ [ "string_36", 1 ] ] ]
   },
   {
     "result": "down_blanket",
@@ -109,6 +106,7 @@
     "skill_used": "tailor",
     "difficulty": 1,
     "time": "85 m",
+    "reversible": true,
     "autolearn": true,
     "using": [ [ "sewing_standard", 20 ] ],
     "components": [ [ [ "rag", 35 ] ], [ [ "down_feather", 160 ] ] ]
@@ -141,7 +139,7 @@
     "tools": [ [ [ "surface_heat", 5, "LIST" ] ] ],
     "components": [
       [ [ "fur", 4 ] ],
-      [ [ "cordage", 1, "LIST" ] ],
+      [ [ "string_36", 1 ] ],
       [ [ "plastic_chunk", 10 ], [ "bottle_plastic", 5 ], [ "bottle_plastic_small", 10 ], [ "jug_plastic", 1 ] ]
     ]
   },
@@ -158,7 +156,7 @@
     "tools": [ [ [ "surface_heat", 5, "LIST" ] ] ],
     "components": [
       [ [ "faux_fur", 4 ] ],
-      [ [ "cordage", 1, "LIST" ] ],
+      [ [ "string_36", 1 ] ],
       [ [ "plastic_chunk", 10 ], [ "bottle_plastic", 5 ], [ "bottle_plastic_small", 10 ], [ "jug_plastic", 1 ] ]
     ]
   },
@@ -214,7 +212,7 @@
     "tools": [ [ [ "surface_heat", 5, "LIST" ] ] ],
     "components": [
       [ [ "leather", 4 ] ],
-      [ [ "cordage", 1, "LIST" ] ],
+      [ [ "string_36", 1 ] ],
       [ [ "plastic_chunk", 10 ], [ "bottle_plastic", 5 ], [ "bottle_plastic_small", 10 ], [ "jug_plastic", 1 ] ]
     ]
   },
@@ -238,7 +236,7 @@
     "subcategory": "CSC_OTHER_OTHER",
     "skill_used": "fabrication",
     "difficulty": 5,
-    "skills_required": [ "chemistry", 1 ],
+    "skills_required": [ "cooking", 1 ],
     "time": "60 m",
     "reversible": true,
     "decomp_learn": 4,
@@ -252,7 +250,6 @@
     ],
     "using": [ [ "soldering_standard", 10 ] ],
     "qualities": [ { "id": "SCREW", "level": 1 } ],
-    "flags": [ "UNCRAFT_BY_QUANTITY" ],
     "components": [
       [ [ "oxy_powder", 50 ] ],
       [ [ "charcoal", 5 ], [ "coal_lump", 5 ] ],
@@ -272,7 +269,6 @@
     "reversible": true,
     "decomp_learn": 2,
     "autolearn": true,
-    "flags": [ "UNCRAFT_BY_QUANTITY" ],
     "components": [ [ [ "charcoal", 5 ] ], [ [ "paper", 2 ] ], [ [ "bag_plastic", 1 ] ] ]
   },
   {
@@ -287,7 +283,6 @@
     "reversible": true,
     "decomp_learn": 2,
     "autolearn": true,
-    "flags": [ "UNCRAFT_BY_QUANTITY" ],
     "components": [ [ [ "charcoal", 10 ] ], [ [ "paper", 2 ] ], [ [ "bag_plastic", 1 ] ] ]
   },
   {
@@ -297,11 +292,10 @@
     "subcategory": "CSC_OTHER_OTHER",
     "skill_used": "fabrication",
     "difficulty": 5,
-    "skills_required": [ "chemistry", 1 ],
+    "skills_required": [ "cooking", 1 ],
     "time": "60 m",
     "reversible": true,
     "decomp_learn": 4,
-    "flags": [ "UNCRAFT_BY_QUANTITY" ],
     "book_learn": [
       [ "textbook_fireman", 4 ],
       [ "atomic_survival", 4 ],

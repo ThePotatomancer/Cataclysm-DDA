@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_OPTIONAL_H
-#define CATA_SRC_OPTIONAL_H
+#ifndef OPTIONAL_H
+#define OPTIONAL_H
 
 #include <cassert>
 #include <initializer_list>
@@ -65,7 +65,7 @@ class optional
                 construct( other.get() );
             }
         }
-        optional( optional &&other ) noexcept : full( false ) {
+        optional( optional &&other ) : full( false ) {
             if( other.full ) {
                 construct( std::move( other.get() ) );
             }
@@ -173,7 +173,7 @@ class optional
             }
             return *this;
         }
-        optional &operator=( optional &&other ) noexcept {
+        optional &operator=( optional &&other ) {
             if( full && other.full ) {
                 get() = std::move( other.get() );
             } else if( full ) {
@@ -234,24 +234,6 @@ class optional
         }
 };
 
-template<class T, class U>
-constexpr bool operator==( const optional<T> &lhs, const optional<U> &rhs )
-{
-    if( lhs.has_value() != rhs.has_value() ) {
-        return false;
-    } else if( !lhs ) {
-        return true;
-    } else {
-        return *lhs == *rhs;
-    }
-}
-
-template< class T, class U >
-constexpr bool operator!=( const optional<T> &lhs, const optional<U> &rhs )
-{
-    return !operator==( lhs, rhs );
-}
-
 } // namespace cata
 
-#endif // CATA_SRC_OPTIONAL_H
+#endif

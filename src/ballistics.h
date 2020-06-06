@@ -1,9 +1,10 @@
 #pragma once
-#ifndef CATA_SRC_BALLISTICS_H
-#define CATA_SRC_BALLISTICS_H
+#ifndef BALLISTICS_H
+#define BALLISTICS_H
+
+#include "dispersion.h"
 
 class Creature;
-class dispersion_sources;
 class vehicle;
 struct dealt_projectile_attack;
 struct projectile;
@@ -11,12 +12,9 @@ struct tripoint;
 
 /** Aim result for a single projectile attack */
 struct projectile_attack_aim {
-    ///< Hit quality, where 0.0 is a perfect hit and 1.0 is a miss
-    double missed_by;
-    ///< Number of tiles the attack missed by
-    double missed_by_tiles;
-    ///< Dispersion of this particular shot in arcminutes
-    double dispersion;
+    double missed_by;       ///< Hit quality, where 0.0 is a perfect hit and 1.0 is a miss
+    double missed_by_tiles; ///< Number of tiles the attack missed by
+    double dispersion;      ///< Dispersion of this particular shot in arcminutes
 };
 
 /**
@@ -34,4 +32,4 @@ dealt_projectile_attack projectile_attack( const projectile &proj_arg, const tri
         const tripoint &target_arg, const dispersion_sources &dispersion,
         Creature *origin = nullptr, const vehicle *in_veh = nullptr );
 
-#endif // CATA_SRC_BALLISTICS_H
+#endif

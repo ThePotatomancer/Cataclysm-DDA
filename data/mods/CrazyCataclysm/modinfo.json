@@ -22,6 +22,7 @@
   {
     "type": "EXTERNAL_OPTION",
     "name": "CRAZY",
+    "info": "It's craaaaaazy!",
     "stype": "bool",
     "value": true
   }

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_DEBUG_MENU_H
-#define CATA_SRC_DEBUG_MENU_H
+#ifndef DEBUG_MENU_H
+#define DEBUG_MENU_H
 
 struct tripoint;
 
@@ -19,18 +19,16 @@ void teleport_short();
 void teleport_long();
 void teleport_overmap();
 
-void spawn_nested_mapgen();
 void character_edit_menu();
-void wishitem( player *p = nullptr );
-void wishitem( player *p, const tripoint & );
+void wishitem( player *p = nullptr, int x = -1, int y = -1, int z = -1 );
 void wishmonster( const cata::optional<tripoint> &p );
 void wishmutate( player *p );
 void wishskill( player *p );
 void mutation_wish();
-void draw_benchmark( int max_difference );
+void draw_benchmark( const int max_difference );
 
 void debug();
 
 } // namespace debug_menu
 
-#endif // CATA_SRC_DEBUG_MENU_H
+#endif // DEBUG_MENU_H

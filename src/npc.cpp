@@ -1,135 +1,112 @@
 #include "npc.h"
 
-#include <algorithm>
-#include <cassert>
 #include <climits>
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 #include <functional>
 #include <limits>
-#include <memory>
+#include <sstream>
 
 #include "auto_pickup.h"
 #include "avatar.h"
-#include "basecamp.h"
-#include "bodypart.h"
-#include "character.h"
-#include "character_id.h"
-#include "character_martial_arts.h"
-#include "clzones.h"
-#include "compatibility.h"
 #include "coordinate_conversions.h"
-#include "damage.h"
-#include "debug.h"
 #include "effect.h"
-#include "enums.h"
-#include "event.h"
-#include "event_bus.h"
-#include "faction.h"
-#include "flat_set.h"
 #include "game.h"
-#include "game_constants.h"
-#include "game_inventory.h"
-#include "int_id.h"
-#include "item.h"
-#include "item_contents.h"
 #include "item_group.h"
 #include "itype.h"
-#include "iuse.h"
 #include "iuse_actor.h"
 #include "json.h"
-#include "magic.h"
 #include "map.h"
-#include "map_iterator.h"
 #include "mapdata.h"
-#include "math_defines.h"
+#include "map_iterator.h"
 #include "messages.h"
 #include "mission.h"
-#include "monster.h"
 #include "morale_types.h"
-#include "mtype.h"
 #include "mutation.h"
 #include "npc_class.h"
 #include "output.h"
 #include "overmap.h"
 #include "overmapbuffer.h"
-#include "options.h"
-#include "pathfinding.h"
-#include "player_activity.h"
-#include "pldata.h"
-#include "ret_val.h"
-#include "rng.h"
 #include "skill.h"
 #include "sounds.h"
-#include "stomach.h"
 #include "string_formatter.h"
-#include "text_snippets.h"
-#include "tileray.h"
 #include "trait_group.h"
-#include "translations.h"
-#include "units.h"
-#include "value_ptr.h"
 #include "veh_type.h"
 #include "vehicle.h"
-#include "visitable.h"
 #include "vpart_position.h"
+#include "bodypart.h"
+#include "cata_utility.h"
+#include "character.h"
+#include "damage.h"
+#include "debug.h"
+#include "faction.h"
+#include "game_constants.h"
+#include "item.h"
+#include "iuse.h"
+#include "math_defines.h"
+#include "monster.h"
+#include "pathfinding.h"
+#include "player_activity.h"
+#include "ret_val.h"
+#include "rng.h"
+#include "tileray.h"
+#include "translations.h"
+#include "units.h"
+#include "visitable.h"
+#include "int_id.h"
+#include "pldata.h"
+#include "clzones.h"
+#include "enums.h"
+#include "flat_set.h"
+#include "stomach.h"
 
-static const activity_id ACT_READ( "ACT_READ" );
+class basecamp;
+class monfaction;
 
-static const efftype_id effect_bouldering( "bouldering" );
-static const efftype_id effect_contacts( "contacts" );
-static const efftype_id effect_controlled( "controlled" );
-static const efftype_id effect_drunk( "drunk" );
-static const efftype_id effect_high( "high" );
-static const efftype_id effect_infection( "infection" );
-static const efftype_id effect_mending( "mending" );
-static const efftype_id effect_npc_flee_player( "npc_flee_player" );
-static const efftype_id effect_npc_suspend( "npc_suspend" );
-static const efftype_id effect_pkill_l( "pkill_l" );
-static const efftype_id effect_pkill1( "pkill1" );
-static const efftype_id effect_pkill2( "pkill2" );
-static const efftype_id effect_pkill3( "pkill3" );
-static const efftype_id effect_ridden( "ridden" );
-static const efftype_id effect_riding( "riding" );
+const skill_id skill_mechanics( "mechanics" );
+const skill_id skill_electronics( "electronics" );
+const skill_id skill_speech( "speech" );
+const skill_id skill_barter( "barter" );
+const skill_id skill_gun( "gun" );
+const skill_id skill_pistol( "pistol" );
+const skill_id skill_throw( "throw" );
+const skill_id skill_rifle( "rifle" );
+const skill_id skill_dodge( "dodge" );
+const skill_id skill_melee( "melee" );
+const skill_id skill_unarmed( "unarmed" );
+const skill_id skill_computer( "computer" );
+const skill_id skill_firstaid( "firstaid" );
+const skill_id skill_bashing( "bashing" );
+const skill_id skill_stabbing( "stabbing" );
+const skill_id skill_archery( "archery" );
+const skill_id skill_cooking( "cooking" );
+const skill_id skill_tailor( "tailor" );
+const skill_id skill_shotgun( "shotgun" );
+const skill_id skill_smg( "smg" );
+const skill_id skill_launcher( "launcher" );
+const skill_id skill_cutting( "cutting" );
 
-static const itype_id itype_UPS_off( "UPS_off" );
+const efftype_id effect_drunk( "drunk" );
+const efftype_id effect_high( "high" );
+const efftype_id effect_pkill1( "pkill1" );
+const efftype_id effect_pkill2( "pkill2" );
+const efftype_id effect_pkill3( "pkill3" );
+const efftype_id effect_pkill_l( "pkill_l" );
+const efftype_id effect_infection( "infection" );
+const efftype_id effect_bouldering( "bouldering" );
+const efftype_id effect_npc_flee_player( "npc_flee_player" );
 
-static const skill_id skill_archery( "archery" );
-static const skill_id skill_barter( "barter" );
-static const skill_id skill_bashing( "bashing" );
-static const skill_id skill_cutting( "cutting" );
-static const skill_id skill_pistol( "pistol" );
-static const skill_id skill_rifle( "rifle" );
-static const skill_id skill_shotgun( "shotgun" );
-static const skill_id skill_smg( "smg" );
-static const skill_id skill_stabbing( "stabbing" );
-static const skill_id skill_throw( "throw" );
-
-static const bionic_id bio_eye_optic( "bio_eye_optic" );
-static const bionic_id bio_memory( "bio_memory" );
-
-static const trait_id trait_BEE( "BEE" );
 static const trait_id trait_CANNIBAL( "CANNIBAL" );
-static const trait_id trait_DEBUG_MIND_CONTROL( "DEBUG_MIND_CONTROL" );
-static const trait_id trait_HALLUCINATION( "HALLUCINATION" );
-static const trait_id trait_HYPEROPIC( "HYPEROPIC" );
-static const trait_id trait_ILLITERATE( "ILLITERATE" );
-static const trait_id trait_MUTE( "MUTE" );
-static const trait_id trait_PROF_DICEMASTER( "PROF_DICEMASTER" );
 static const trait_id trait_PSYCHOPATH( "PSYCHOPATH" );
 static const trait_id trait_SAPIOVORE( "SAPIOVORE" );
-static const trait_id trait_SCHIZOPHRENIC( "SCHIZOPHRENIC" );
 static const trait_id trait_TERRIFYING( "TERRIFYING" );
-
-static const std::string flag_NPC_SAFE( "NPC_SAFE" );
-
-class monfaction;
 
 void starting_clothes( npc &who, const npc_class_id &type, bool male );
 void starting_inv( npc &who, const npc_class_id &type );
 
 npc::npc()
-    : restock( calendar::turn_zero )
+    : restock( calendar::before_time_starts )
     , companion_mission_time( calendar::before_time_starts )
     , companion_mission_time_ret( calendar::before_time_starts )
     , last_updated( calendar::turn )
@@ -150,6 +127,7 @@ npc::npc()
     dex_max = 0;
     int_max = 0;
     per_max = 0;
+    my_fac = nullptr;
     marked_for_death = false;
     death_drops = true;
     dead = false;
@@ -158,22 +136,20 @@ npc::npc()
     moves = 100;
     mission = NPC_MISSION_NULL;
     myclass = npc_class_id::NULL_ID();
-    fac_id = faction_id::NULL_ID();
     patience = 0;
     attitude = NPCATT_NULL;
 
-    *path_settings = pathfinding_settings( 0, 1000, 1000, 10, true, true, true, false, true );
+    *path_settings = pathfinding_settings( 0, 1000, 1000, 10, true, true, true, false );
     for( direction threat_dir : npc_threat_dir ) {
         ai_cache.threat_map[ threat_dir ] = 0.0f;
     }
 }
 
-standard_npc::standard_npc( const std::string &name, const tripoint &pos,
-                            const std::vector<std::string> &clothing,
+standard_npc::standard_npc( const std::string &name, const std::vector<itype_id> &clothing,
                             int sk_lvl, int s_str, int s_dex, int s_int, int s_per )
 {
     this->name = name;
-    position = pos;
+    position = tripoint_zero;
 
     str_cur = std::max( s_str, 0 );
     str_max = std::max( s_str, 0 );
@@ -193,7 +169,7 @@ standard_npc::standard_npc( const std::string &name, const tripoint &pos,
     }
 
     for( const auto &e : clothing ) {
-        wear_item( item( e ), false );
+        wear_item( item( e ) );
     }
 
     for( item &e : worn ) {
@@ -208,25 +184,26 @@ npc &npc::operator=( npc && ) = default;
 
 static std::map<string_id<npc_template>, npc_template> npc_templates;
 
-void npc_template::load( const JsonObject &jsobj )
+void npc_template::load( JsonObject &jsobj )
 {
-    npc_template tem;
-    npc &guy = tem.guy;
+    npc guy;
     guy.idz = jsobj.get_string( "id" );
     guy.name.clear();
-    jsobj.read( "name_unique", tem.name_unique );
-    jsobj.read( "name_suffix", tem.name_suffix );
+    if( jsobj.has_string( "name_unique" ) ) {
+        guy.name = static_cast<std::string>( _( jsobj.get_string( "name_unique" ) ) );
+    }
+    if( jsobj.has_string( "name_suffix" ) ) {
+        guy.name += ", " + static_cast<std::string>( _( jsobj.get_string( "name_suffix" ) ) );
+    }
     if( jsobj.has_string( "gender" ) ) {
         if( jsobj.get_string( "gender" ) == "male" ) {
-            tem.gender_override = gender::male;
+            guy.male = true;
         } else {
-            tem.gender_override = gender::female;
+            guy.male = false;
         }
-    } else {
-        tem.gender_override = gender::random;
     }
     if( jsobj.has_string( "faction" ) ) {
-        guy.set_fac_id( jsobj.get_string( "faction" ) );
+        guy.fac_id = faction_id( jsobj.get_string( "faction" ) );
     }
 
     if( jsobj.has_int( "class" ) ) {
@@ -241,11 +218,12 @@ void npc_template::load( const JsonObject &jsobj )
     if( jsobj.has_string( "mission_offered" ) ) {
         guy.miss_ids.emplace_back( mission_type_id( jsobj.get_string( "mission_offered" ) ) );
     } else if( jsobj.has_array( "mission_offered" ) ) {
-        for( const std::string line : jsobj.get_array( "mission_offered" ) ) {
-            guy.miss_ids.emplace_back( mission_type_id( line ) );
+        JsonArray ja = jsobj.get_array( "mission_offered" );
+        while( ja.has_more() ) {
+            guy.miss_ids.emplace_back( mission_type_id( ja.next_string() ) );
         }
     }
-    npc_templates.emplace( string_id<npc_template>( guy.idz ), std::move( tem ) );
+    npc_templates[string_id<npc_template>( guy.idz )].guy = std::move( guy );
 }
 
 void npc_template::reset()
@@ -275,7 +253,7 @@ const npc_template &string_id<npc_template>::obj() const
     const auto found = npc_templates.find( *this );
     if( found == npc_templates.end() ) {
         debugmsg( "Tried to get invalid npc: %s", c_str() );
-        static const npc_template dummy{};
+        static const npc_template dummy;
         return dummy;
     }
     return found->second;
@@ -288,21 +266,18 @@ void npc::load_npc_template( const string_id<npc_template> &ident )
         debugmsg( "Tried to get invalid npc: %s", ident.c_str() );
         return;
     }
-    const npc_template &tem = found->second;
-    const npc &tguy = tem.guy;
+    const npc &tguy = found->second.guy;
 
     idz = tguy.idz;
     myclass = npc_class_id( tguy.myclass );
     randomize( myclass );
-    if( !tem.name_unique.empty() ) {
-        name = tem.name_unique.translated();
-    }
-    if( !tem.name_suffix.empty() ) {
-        //~ %1$s: npc name, %2$s: name suffix
-        name = string_format( pgettext( "npc name", "%1$s, %2$s" ), name, tem.name_suffix );
-    }
-    if( tem.gender_override != npc_template::gender::random ) {
-        male = tem.gender_override == npc_template::gender::male;
+    std::string tmpname = tguy.name;
+    if( tmpname[0] == ',' ) {
+        name = name + tguy.name;
+    } else {
+        name = tguy.name;
+        //Assume if the name is unique, the gender might also be.
+        male = tguy.male;
     }
     fac_id = tguy.fac_id;
     set_fac( fac_id );
@@ -318,7 +293,7 @@ npc::~npc() = default;
 
 void npc::randomize( const npc_class_id &type )
 {
-    if( !getID().is_valid() ) {
+    if( getID() <= 0 ) {
         setID( g->assign_npc_id() );
     }
 
@@ -347,6 +322,11 @@ void npc::randomize( const npc_class_id &type )
     dex_max = the_class.roll_dexterity();
     int_max = the_class.roll_intelligence();
     per_max = the_class.roll_perception();
+
+    if( myclass->get_shopkeeper_items() != "EMPTY_GROUP" ) {
+        restock = calendar::turn + 3_days;
+        cash += 100000;
+    }
 
     for( auto &skill : Skill::skills ) {
         int level = myclass->roll_skill( skill.ident() );
@@ -420,11 +400,13 @@ void npc::randomize( const npc_class_id &type )
     for( int i = 0; i < num_hp_parts; i++ ) {
         hp_cur[i] = hp_max[i];
     }
+
     starting_weapon( myclass );
     starting_clothes( *this, myclass, male );
     starting_inv( *this, myclass );
     has_new_items = true;
-    clear_mutations();
+
+    empty_traits();
 
     // Add fixed traits
     for( const auto &tid : trait_group::traits_from( myclass->traits ) ) {
@@ -445,68 +427,38 @@ void npc::randomize( const npc_class_id &type )
             add_bionic( bl.first );
         }
     }
-    // Add spells for magiclysm mod
-    for( std::pair<spell_id, int> spell_pair : type->_starting_spells ) {
-        this->magic.learn_spell( spell_pair.first, *this, true );
-        spell &sp = this->magic.get_spell( spell_pair.first );
-        while( sp.get_level() < spell_pair.second && !sp.is_max_level() ) {
-            sp.gain_level();
-        }
-    }
 }
 
 void npc::randomize_from_faction( faction *fac )
 {
     // Personality = aggression, bravery, altruism, collector
-    set_fac( fac->id );
+    my_fac = fac;
+    fac_id = fac->id;
     randomize( npc_class_id::NULL_ID() );
 }
 
-void npc::set_fac( const faction_id &id )
+void npc::set_fac( const string_id<faction> &id )
 {
-    if( my_fac ) {
-        my_fac->remove_member( getID() );
-    }
     my_fac = g->faction_manager_ptr->get( id );
-    if( my_fac ) {
-        if( !is_fake() && !is_hallucination() ) {
-            my_fac->add_to_membership( getID(), disp_name(), known_to_u );
-        }
-        fac_id = my_fac->id;
-    } else {
-        return;
-    }
-    apply_ownership_to_inv();
-}
-
-void npc::apply_ownership_to_inv()
-{
+    fac_id = my_fac->id;
     for( auto &e : inv_dump() ) {
-        e->set_owner( *this );
+        e->set_owner( my_fac );
     }
 }
 
-faction_id npc::get_fac_id() const
+void npc::clear_fac()
 {
-    return fac_id;
+    my_fac = nullptr;
+    fac_id = string_id<faction>( "" );
 }
-
-faction *npc::get_faction() const
-{
-    if( !my_fac ) {
-        return g->faction_manager_ptr->get( faction_id( "no_faction" ) );
-    }
-    return my_fac;
-}
-
 // item id from group "<class-name>_<what>" or from fallback group
 // may still be a null item!
 static item random_item_from( const npc_class_id &type, const std::string &what,
                               const std::string &fallback )
 {
-    auto result = item_group::item_from( type.str() + "_" + what, calendar::turn );
+    auto result = item_group::item_from( type.str() + "_" + what );
     if( result.is_null() ) {
-        result = item_group::item_from( fallback, calendar::turn );
+        result = item_group::item_from( fallback );
     }
     return result;
 }
@@ -543,6 +495,7 @@ static item get_clothing_item( const npc_class_id &type, const std::string &what
 void starting_clothes( npc &who, const npc_class_id &type, bool male )
 {
     std::vector<item> ret;
+
     if( item_group::group_is_defined( type->worn_override ) ) {
         ret = item_group::items_from( type->worn_override );
     } else {
@@ -578,7 +531,7 @@ void starting_clothes( npc &who, const npc_class_id &type, bool male )
         if( who.can_wear( it ).success() ) {
             it.on_wear( who );
             who.worn.push_back( it );
-            it.set_owner( who );
+            it.set_owner( who.my_fac );
         }
     }
 }
@@ -595,23 +548,23 @@ void starting_inv( npc &who, const npc_class_id &type )
     res.emplace_back( "lighter" );
     // If wielding a gun, get some additional ammo for it
     if( who.weapon.is_gun() ) {
-        item ammo;
-        if( !who.weapon.magazine_default().is_null() ) {
-            item mag( who.weapon.magazine_default() );
-            mag.ammo_set( mag.ammo_default() );
-            ammo = item( mag.ammo_default() );
-            res.push_back( mag );
-        } else if( !who.weapon.ammo_default().is_null() ) {
-            ammo = item( who.weapon.ammo_default() );
-            // TODO: Move to npc_class
-            // NC_COWBOY and NC_BOUNTY_HUNTER get 5-15 whilst all others get 3-6
-            int qty = 1 + ( type == NC_COWBOY ||
-                            type == NC_BOUNTY_HUNTER );
-            qty = rng( qty, qty * 2 );
+        item ammo( who.weapon.ammo_default() );
+        ammo = ammo.in_its_container();
+        if( ammo.made_of( LIQUID ) ) {
+            item container( "bottle_plastic" );
+            container.put_in( ammo );
+            ammo = container;
+        }
 
-            while( qty-- != 0 && who.can_stash( ammo ) ) {
-                res.push_back( ammo );
-            }
+        // TODO: Move to npc_class
+        // NC_COWBOY and NC_BOUNTY_HUNTER get 5-15 whilst all others get 3-6
+        int qty = 1 + ( type == NC_COWBOY ||
+                        type == NC_BOUNTY_HUNTER );
+        qty = rng( qty, qty * 2 );
+
+        while( qty-- != 0 && who.can_pickVolume( ammo ) ) {
+            // TODO: give NPC a default magazine instead
+            res.push_back( ammo );
         }
     }
 
@@ -639,7 +592,7 @@ void starting_inv( npc &who, const npc_class_id &type )
         return e.has_flag( "TRADER_AVOID" );
     } ), res.end() );
     for( auto &it : res ) {
-        it.set_owner( who );
+        it.set_owner( who.my_fac );
     }
     who.inv += res;
 }
@@ -649,7 +602,7 @@ void npc::revert_after_activity()
     mission = previous_mission;
     attitude = previous_attitude;
     activity = player_activity();
-    current_activity_id = activity_id::NULL_ID();
+    current_activity.clear();
     clear_destination();
     backlog.clear();
 }
@@ -662,19 +615,6 @@ npc_mission npc::get_previous_mission()
 npc_attitude npc::get_previous_attitude()
 {
     return previous_attitude;
-}
-
-bool npc::get_known_to_u()
-{
-    return known_to_u;
-}
-
-void npc::set_known_to_u( bool known )
-{
-    known_to_u = known;
-    if( my_fac ) {
-        my_fac->add_to_membership( getID(), disp_name(), known_to_u );
-    }
 }
 
 void npc::setpos( const tripoint &pos )
@@ -700,7 +640,7 @@ void npc::setpos( const tripoint &pos )
 void npc::travel_overmap( const tripoint &pos )
 {
     const point pos_om_old = sm_to_om_copy( submap_coords );
-    spawn_at_sm( pos );
+    spawn_at_sm( pos.x, pos.y, pos.z );
     const point pos_om_new = sm_to_om_copy( submap_coords );
     if( global_omt_location() == goal ) {
         reach_omt_destination();
@@ -718,9 +658,9 @@ void npc::travel_overmap( const tripoint &pos )
     }
 }
 
-void npc::spawn_at_sm( const tripoint &p )
+void npc::spawn_at_sm( int x, int y, int z )
 {
-    spawn_at_precise( p.xy(), tripoint( rng( 0, SEEX - 1 ), rng( 0, SEEY - 1 ), p.z ) );
+    spawn_at_precise( point( x, y ), tripoint( rng( 0, SEEX - 1 ), rng( 0, SEEY - 1 ), z ) );
 }
 
 void npc::spawn_at_precise( const point &submap_offset, const tripoint &square )
@@ -735,7 +675,8 @@ void npc::spawn_at_precise( const point &submap_offset, const tripoint &square )
 
 tripoint npc::global_square_location() const
 {
-    return sm_to_ms_copy( submap_coords ) + tripoint( posx() % SEEX, posy() % SEEY, position.z );
+    return tripoint( submap_coords.x * SEEX + posx() % SEEX, submap_coords.y * SEEY + posy() % SEEY,
+                     position.z );
 }
 
 void npc::place_on_map()
@@ -751,11 +692,11 @@ void npc::place_on_map()
     // value of "submap_coords.x * SEEX + posx()" is unchanged
     setpos( tripoint( offset_x + dmx * SEEX, offset_y + dmy * SEEY, posz() ) );
 
-    if( g->is_empty( pos() ) || is_mounted() ) {
+    if( g->is_empty( pos() ) ) {
         return;
     }
 
-    for( const tripoint &p : closest_tripoints_first( pos(), SEEX + 1 ) ) {
+    for( const tripoint &p : closest_tripoints_first( SEEX + 1, pos() ) ) {
         if( g->is_empty( p ) ) {
             setpos( p );
             return;
@@ -802,7 +743,7 @@ int npc::best_skill_level() const
 void npc::starting_weapon( const npc_class_id &type )
 {
     if( item_group::group_is_defined( type->weapon_override ) ) {
-        weapon = item_group::item_from( type->weapon_override, calendar::turn );
+        weapon = item_group::item_from( type->weapon_override );
         return;
     }
 
@@ -830,262 +771,87 @@ void npc::starting_weapon( const npc_class_id &type )
     }
 
     if( weapon.is_gun() ) {
-        if( !weapon.magazine_default().is_null() ) {
-            item mag( weapon.magazine_default() );
-            mag.ammo_set( mag.ammo_default() );
-            weapon.put_in( mag, item_pocket::pocket_type::MAGAZINE_WELL );
-        } else if( !weapon.ammo_default().is_null() ) {
-            weapon.ammo_set( weapon.ammo_default() );
-        } else {
-            debugmsg( "tried setting ammo for %s which has no magazine or ammo", weapon.typeId().c_str() );
-        }
+        weapon.ammo_set( weapon.ammo_default() );
     }
-
-    g->events().send<event_type::character_wields_item>( getID(), weapon.typeId() );
-
-    weapon.set_owner( get_faction()->id );
+    weapon.set_owner( my_fac );
 }
 
-bool npc::can_read( const item &book, std::vector<std::string> &fail_reasons )
-{
-    if( !book.is_book() ) {
-        fail_reasons.push_back( string_format( _( "This %s is not good reading material." ),
-                                               book.tname() ) );
-        return false;
-    }
-    player *pl = dynamic_cast<player *>( this );
-    if( !pl ) {
-        return false;
-    }
-    const auto &type = book.type->book;
-    const skill_id &skill = type->skill;
-    const int skill_level = pl->get_skill_level( skill );
-    if( skill && skill_level < type->req ) {
-        fail_reasons.push_back( string_format( _( "I'm not smart enough to read this book." ) ) );
-        return false;
-    }
-    if( !skill || skill_level >= type->level ) {
-        fail_reasons.push_back( string_format( _( "I won't learn anything from this book." ) ) );
-        return false;
-    }
-
-    // Check for conditions that disqualify us
-    if( type->intel > 0 && has_trait( trait_ILLITERATE ) ) {
-        fail_reasons.emplace_back( _( "I can't read!" ) );
-    } else if( has_trait( trait_HYPEROPIC ) && !worn_with_flag( "FIX_FARSIGHT" ) &&
-               !has_effect( effect_contacts ) && !has_bionic( bio_eye_optic ) ) {
-        fail_reasons.emplace_back( _( "I can't read without my glasses." ) );
-    } else if( fine_detail_vision_mod() > 4 ) {
-        // Too dark to read only applies if the player can read to himself
-        fail_reasons.emplace_back( _( "It's too dark to read!" ) );
-        return false;
-    }
-    return true;
-}
-
-int npc::time_to_read( const item &book, const player &reader ) const
-{
-    const auto &type = book.type->book;
-    const skill_id &skill = type->skill;
-    // The reader's reading speed has an effect only if they're trying to understand the book as they read it
-    // Reading speed is assumed to be how well you learn from books (as opposed to hands-on experience)
-    const bool try_understand = reader.fun_to_read( book ) ||
-                                reader.get_skill_level( skill ) < type->level;
-    int reading_speed = try_understand ? std::max( reader.read_speed(), read_speed() ) : read_speed();
-
-    int retval = type->time * reading_speed;
-    retval *= std::min( fine_detail_vision_mod(), reader.fine_detail_vision_mod() );
-
-    if( type->intel > reader.get_int() && !reader.has_trait( trait_PROF_DICEMASTER ) ) {
-        retval += type->time * ( type->intel - reader.get_int() ) * 100;
-    }
-    return retval;
-}
-
-void npc::finish_read( item &book )
-{
-    const auto &reading = book.type->book;
-    if( !reading ) {
-        revert_after_activity();
-        return;
-    }
-    const skill_id &skill = reading->skill;
-    // NPCs don't need to identify the book or learn recipes yet.
-    // NPCs don't read to other NPCs yet.
-    const bool display_messages = my_fac->id == faction_id( "your_followers" ) && g->u.sees( pos() );
-    bool continuous = false; //whether to continue reading or not
-
-    if( book_fun_for( book, *this ) != 0 ) {
-        //Fun bonus is no longer calculated here.
-        add_morale( MORALE_BOOK, book_fun_for( book, *this ) * 5, book_fun_for( book,
-                    *this ) * 15, 1_hours, 30_minutes, true,
-                    book.type );
-    }
-
-    book.mark_chapter_as_read( *this );
-
-    if( skill && get_skill_level( skill ) < reading->level &&
-        get_skill_level_object( skill ).can_train() ) {
-        SkillLevel &skill_level = get_skill_level_object( skill );
-        const int originalSkillLevel = skill_level.level();
-
-        // Calculate experience gained
-        /** @EFFECT_INT increases reading comprehension */
-        // Enhanced Memory Banks modestly boosts experience
-        int min_ex = std::max( 1, reading->time / 10 + get_int() / 4 );
-        int max_ex = reading->time / 5 + get_int() / 2 - originalSkillLevel;
-        if( has_active_bionic( bio_memory ) ) {
-            min_ex += 2;
-        }
-        if( max_ex < 2 ) {
-            max_ex = 2;
-        }
-        if( max_ex > 10 ) {
-            max_ex = 10;
-        }
-        if( max_ex < min_ex ) {
-            max_ex = min_ex;
-        }
-        const std::string &s = activity.get_str_value( 0, "1" );
-        double penalty = strtod( s.c_str(), nullptr );
-        min_ex *= ( originalSkillLevel + 1 ) * penalty;
-        min_ex = std::max( min_ex, 1 );
-        max_ex *= ( originalSkillLevel + 1 ) * penalty;
-        max_ex = std::max( min_ex, max_ex );
-
-        skill_level.readBook( min_ex, max_ex, reading->level );
-        const std::string skill_name = skill.obj().name();
-        if( skill_level != originalSkillLevel ) {
-            g->events().send<event_type::gains_skill_level>( getID(), skill, skill_level.level() );
-            if( display_messages ) {
-                add_msg( m_good, _( "%s increases their %s level." ), disp_name(), skill_name );
-                // NPC reads until they gain a level, then stop.
-                revert_after_activity();
-                return;
-            }
-        } else {
-            continuous = true;
-            if( display_messages ) {
-                add_msg( m_info, _( "%s learns a little about %s!" ), disp_name(), skill_name );
-            }
-        }
-
-        if( ( skill_level == reading->level || !skill_level.can_train() ) ||
-            ( ( has_trait( trait_SCHIZOPHRENIC ) ||
-                has_artifact_with( AEP_SCHIZO ) ) && one_in( 25 ) ) ) {
-            if( display_messages ) {
-                add_msg( m_info, _( "%s can no longer learn from %s." ), disp_name(), book.type_name() );
-            }
-        }
-    } else if( skill ) {
-        if( display_messages ) {
-            add_msg( m_info, _( "%s can no longer learn from %s." ), disp_name(), book.type_name() );
-        }
-    }
-
-    // NPCs can't learn martial arts from manuals (yet)
-
-    if( continuous ) {
-        activity.set_to_null();
-        player *pl = dynamic_cast<player *>( this );
-        if( pl ) {
-            start_read( book, pl );
-        }
-        if( activity ) {
-            return;
-        }
-    }
-    activity.set_to_null();
-    revert_after_activity();
-}
-
-void npc::start_read( item &chosen, player *pl )
-{
-    const int time_taken = time_to_read( chosen, *pl );
-    const double penalty = static_cast<double>( time_taken ) / time_to_read( chosen, *pl );
-    player_activity act( ACT_READ, time_taken, 0, pl->getID().get_value() );
-    act.targets.emplace_back( item_location( *this, &chosen ) );
-    act.str_values.push_back( to_string( penalty ) );
-    // push an identifier of martial art book to the action handling
-    if( chosen.type->use_methods.count( "MA_MANUAL" ) ) {
-        act.str_values.clear();
-        act.str_values.emplace_back( "martial_art" );
-    }
-    assign_activity( act );
-}
-
-void npc::do_npc_read()
-{
-    // Can read items from inventory or within one tile (including in vehicles)
-    player *pl = dynamic_cast<player *>( this );
-    if( !pl ) {
-        return;
-    }
-    auto loc = game_menus::inv::read( *pl );
-
-    if( loc ) {
-        std::vector<std::string> fail_reasons;
-        Character *ch = dynamic_cast<Character *>( pl );
-        if( !ch ) {
-            return;
-        }
-        item &chosen = *loc.obtain( *ch );
-        if( can_read( chosen, fail_reasons ) ) {
-            if( g->u.sees( pos() ) ) {
-                add_msg( m_info, _( "%s starts reading." ), disp_name() );
-            }
-            start_read( chosen, pl );
-        } else {
-            for( const auto &elem : fail_reasons ) {
-                say( elem );
-            }
-        }
-    } else {
-        add_msg( _( "Never mind." ) );
-    }
-}
-
-bool npc::wear_if_wanted( const item &it, std::string &reason )
+bool npc::wear_if_wanted( const item &it )
 {
     // Note: this function isn't good enough to use with NPC AI alone
     // Restrict it to player's orders for now
     if( !it.is_armor() ) {
-        reason = _( "This can't be worn." );
         return false;
     }
 
+    // TODO: Make it depend on stuff
+    static const std::array<int, num_bp> max_encumb = {{
+            30, // bp_torso - Higher if ranged?
+            100, // bp_head
+            30, // bp_eyes - Lower if using ranged?
+            30, // bp_mouth
+            30, // bp_arm_l
+            30, // bp_arm_r
+            30, // bp_hand_l - Lower if throwing?
+            30, // bp_hand_r
+            // Must be enough to allow hazmat, turnout etc.
+            30, // bp_leg_l - Higher if ranged?
+            30, // bp_leg_r
+            // Doesn't hurt much
+            50, // bp_foot_l
+            50, // bp_foot_r
+        }
+    };
+
     // Splints ignore limits, but only when being equipped on a broken part
     // TODO: Drop splints when healed
-    if( it.has_flag( "SPLINT" ) ) {
+    bool splint = it.has_flag( "SPLINT" );
+    if( splint ) {
+        splint = false;
         for( int i = 0; i < num_hp_parts; i++ ) {
             hp_part hpp = static_cast<hp_part>( i );
             body_part bp = player::hp_to_bp( hpp );
-            if( is_limb_broken( hpp ) && !has_effect( effect_mending, bp ) &&
-                it.covers( convert_bp( bp ).id() ) ) {
-                reason = _( "Thanks, I'll wear that now." );
-                return !!wear_item( it, false );
+            if( hp_cur[i] <= 0 && it.covers( bp ) ) {
+                splint = true;
+                break;
             }
         }
     }
 
+    if( splint ) {
+        return !!wear_item( it, false );
+    }
+
+    const int it_encumber = it.get_encumber( *this );
     while( !worn.empty() ) {
         auto size_before = worn.size();
+        bool encumb_ok = true;
+        const auto new_enc = get_encumbrance( it );
         // Strip until we can put the new item on
         // This is one of the reasons this command is not used by the AI
-        if( can_wear( it ).success() ) {
-            // TODO: Hazmat/power armor makes this not work due to 1 boots/headgear limit
+        for( const body_part bp : all_body_parts ) {
+            if( !it.covers( bp ) ) {
+                continue;
+            }
 
-            if( !!wear_item( it, false ) ) {
-                reason = _( "Thanks, I'll wear that now." );
-                return true;
-            } else {
-                reason = _( "I tried but couldn't wear it." );
+            if( it_encumber > max_encumb[bp] ) {
+                // Not an NPC-friendly item
                 return false;
             }
+
+            if( new_enc[bp].encumbrance > max_encumb[bp] ) {
+                encumb_ok = false;
+                break;
+            }
+        }
+
+        if( encumb_ok && can_wear( it ).success() ) {
+            // TODO: Hazmat/power armor makes this not work due to 1 boots/headgear limit
+            return !!wear_item( it, false );
         }
         // Otherwise, maybe we should take off one or more items and replace them
         bool took_off = false;
-        for( const bodypart_id bp : get_all_body_parts() ) {
+        for( const body_part bp : all_body_parts ) {
             if( !it.covers( bp ) ) {
                 continue;
             }
@@ -1093,8 +859,7 @@ bool npc::wear_if_wanted( const item &it, std::string &reason )
             auto iter = std::find_if( worn.begin(), worn.end(), [bp]( const item & armor ) {
                 return armor.covers( bp );
             } );
-            if( iter != worn.end() && !( is_limb_broken( bp_to_hp( bp->token ) ) &&
-                                         iter->has_flag( "SPLINT" ) ) ) {
+            if( iter != worn.end() ) {
                 took_off = takeoff( *iter );
                 break;
             }
@@ -1102,11 +867,10 @@ bool npc::wear_if_wanted( const item &it, std::string &reason )
 
         if( !took_off || worn.size() >= size_before ) {
             // Shouldn't happen, but does
-            reason = _( "I tried but couldn't wear it." );
             return false;
         }
     }
-    reason = _( "Thanks, I'll wear that now." );
+
     return worn.empty() && wear_item( it, false );
 }
 
@@ -1114,9 +878,7 @@ void npc::stow_item( item &it )
 {
     if( wear_item( weapon, false ) ) {
         // Wearing the item was successful, remove weapon and post message.
-        if( g->u.sees( pos() ) ) {
-            add_msg_if_npc( m_info, _( "<npcname> wears the %s." ), weapon.tname() );
-        }
+        add_msg_if_npc( m_info, _( "<npcname> wears the %s." ), weapon.tname() );
         remove_weapon();
         moves -= 15;
         // Weapon cannot be worn or wearing was not successful. Store it in inventory if possible,
@@ -1125,26 +887,19 @@ void npc::stow_item( item &it )
     }
     for( auto &e : worn ) {
         if( e.can_holster( it ) ) {
-            if( g->u.sees( pos() ) ) {
-                //~ %1$s: weapon name, %2$s: holster name
-                add_msg_if_npc( m_info, _( "<npcname> puts away the %1$s in the %2$s." ),
-                                weapon.tname(), e.tname() );
-            }
+            add_msg_if_npc( m_info, _( "<npcname> puts away the %s in the %s." ), weapon.tname(),
+                            e.tname() );
             auto ptr = dynamic_cast<const holster_actor *>( e.type->get_use( "holster" )->get_actor_ptr() );
             ptr->store( *this, e, it );
             return;
         }
     }
     if( volume_carried() + weapon.volume() <= volume_capacity() ) {
-        if( g->u.sees( pos() ) ) {
-            add_msg_if_npc( m_info, _( "<npcname> puts away the %s." ), weapon.tname() );
-        }
+        add_msg_if_npc( m_info, _( "<npcname> puts away the %s." ), weapon.tname() );
         i_add( remove_weapon() );
         moves -= 15;
     } else { // No room for weapon, so we drop it
-        if( g->u.sees( pos() ) ) {
-            add_msg_if_npc( m_info, _( "<npcname> drops the %s." ), weapon.tname() );
-        }
+        add_msg_if_npc( m_info, _( "<npcname> drops the %s." ), weapon.tname() );
         g->m.add_item_or_charges( pos(), remove_weapon() );
     }
 }
@@ -1158,26 +913,14 @@ bool npc::wield( item &it )
 
     if( it.is_null() ) {
         weapon = item();
-        g->events().send<event_type::character_wields_item>( getID(), weapon.typeId() );
         return true;
     }
 
     // check if the item is in a holster
     int position = inv.position_by_item( &it );
-    if( position != INT_MIN ) {
-        item &maybe_holster = inv.find_item( position );
-        assert( !maybe_holster.is_null() );
-        if( &maybe_holster != &it && maybe_holster.is_holster() ) {
-            assert( !maybe_holster.contents.empty() );
-            const size_t old_size = maybe_holster.contents.num_item_stacks();
-            invoke_item( &maybe_holster );
-            // TODO: change invoke_item to somehow report this change
-            // HACK: test whether wielding the item from the holster has been done.
-            // (Wielding may be prevented by various reasons: see player::wield_contained)
-            if( old_size != maybe_holster.contents.num_item_stacks() ) {
-                return true;
-            }
-        }
+    item &holster = inv.find_item( position );
+    if( holster.tname() != it.tname() && holster.is_holster() && !holster.contents.empty() ) {
+        invoke_item( &holster );
     }
 
     moves -= 15;
@@ -1187,31 +930,10 @@ bool npc::wield( item &it )
         weapon = it;
     }
 
-    g->events().send<event_type::character_wields_item>( getID(), weapon.typeId() );
-
     if( g->u.sees( pos() ) ) {
         add_msg_if_npc( m_info, _( "<npcname> wields a %s." ),  weapon.tname() );
     }
-    invalidate_range_cache();
     return true;
-}
-
-void npc::drop( const drop_locations &what, const tripoint &target,
-                bool stash )
-{
-    Character::drop( what, target, stash );
-    // TODO: Remove the hack. Its here because npcs didn't process activities, but they do now
-    // so is this necessary?
-    activity.do_turn( *this );
-}
-
-void npc::invalidate_range_cache()
-{
-    if( weapon.is_gun() ) {
-        confident_range_cache = confident_shoot_range( weapon, get_most_accurate_sight( weapon ) );
-    } else {
-        confident_range_cache = weapon.reach_range( *this );
-    }
 }
 
 void npc::form_opinion( const player &u )
@@ -1265,7 +987,7 @@ void npc::form_opinion( const player &u )
     op_of_u.fear += u_ugly / 2;
     op_of_u.trust -= u_ugly / 3;
 
-    if( u.get_stim() > 20 ) {
+    if( u.stim > 20 ) {
         op_of_u.fear++;
     }
 
@@ -1293,7 +1015,7 @@ void npc::form_opinion( const player &u )
     if( u.has_effect( effect_drunk ) ) {
         op_of_u.trust -= 2;
     }
-    if( u.get_stim() > 20 || u.get_stim() < -20 ) {
+    if( u.stim > 20 || u.stim < -20 ) {
         op_of_u.trust -= 1;
     }
     if( u.get_painkiller() > 30 ) {
@@ -1324,48 +1046,13 @@ void npc::form_opinion( const player &u )
         set_attitude( NPCATT_TALK );
     } else if( op_of_u.fear - 2 * personality.aggression - personality.bravery < -30 ) {
         set_attitude( NPCATT_KILL );
-    } else if( my_fac && my_fac->likes_u < -10 ) {
-        if( is_player_ally() ) {
-            mutiny();
-        }
+    } else if( my_fac != nullptr && my_fac->likes_u < -10 ) {
         set_attitude( NPCATT_KILL );
     } else {
         set_attitude( NPCATT_FLEE_TEMP );
     }
 
     add_msg( m_debug, "%s formed an opinion of u: %s", name, npc_attitude_id( attitude ) );
-}
-
-void npc::mutiny()
-{
-    if( !my_fac || !is_player_ally() ) {
-        return;
-    }
-    const bool seen = g->u.sees( pos() );
-    if( seen ) {
-        add_msg( m_bad, _( "%s is tired of your incompetent leadership and abuse!" ), disp_name() );
-    }
-    // NPCs leaving your faction due to mistreatment further reduce their opinion of you
-    if( my_fac->likes_u < -10 ) {
-        op_of_u.trust += my_fac->respects_u / 10;
-        op_of_u.anger += my_fac->likes_u / 10;
-    }
-    // NPCs leaving your faction for abuse reduce the hatred your (remaining) followers
-    // feel for you, but also reduces their respect for you.
-    my_fac->likes_u = std::max( 0, my_fac->likes_u / 2 + 10 );
-    my_fac->respects_u -= 5;
-    g->remove_npc_follower( getID() );
-    set_fac( faction_id( "amf" ) );
-    job.clear_all_priorities();
-    if( assigned_camp ) {
-        assigned_camp = cata::nullopt;
-    }
-    chatbin.first_topic = "TALK_STRANGER_NEUTRAL";
-    set_attitude( NPCATT_NULL );
-    say( _( "<follower_mutiny>  Adios, motherfucker!" ), sounds::sound_t::order );
-    if( seen ) {
-        my_fac->known_by_u = true;
-    }
 }
 
 float npc::vehicle_danger( int radius ) const
@@ -1377,7 +1064,7 @@ float npc::vehicle_danger( int radius ) const
     int danger = 0;
 
     // TODO: check for most dangerous vehicle?
-    for( size_t i = 0; i < vehicles.size(); ++i ) {
+    for( unsigned int i = 0; i < vehicles.size(); ++i ) {
         const wrapped_vehicle &wrapped_veh = vehicles[i];
         if( wrapped_veh.v->is_moving() ) {
             // FIXME: this can't be the right way to do this
@@ -1385,8 +1072,8 @@ float npc::vehicle_danger( int radius ) const
 
             int ax = wrapped_veh.v->global_pos3().x;
             int ay = wrapped_veh.v->global_pos3().y;
-            int bx = static_cast<int>( ax + std::cos( facing * M_PI / 180.0 ) * radius );
-            int by = static_cast<int>( ay + std::sin( facing * M_PI / 180.0 ) * radius );
+            int bx = int( ax + cos( facing * M_PI / 180.0 ) * radius );
+            int by = int( ay + sin( facing * M_PI / 180.0 ) * radius );
 
             // fake size
             /* This will almost certainly give the wrong size/location on customized
@@ -1395,10 +1082,9 @@ float npc::vehicle_danger( int radius ) const
             vehicle_part last_part = wrapped_veh.v->parts.back();
             int size = std::max( last_part.mount.x, last_part.mount.y );
 
-            double normal = std::sqrt( static_cast<float>( ( bx - ax ) * ( bx - ax ) + ( by - ay ) *
-                                       ( by - ay ) ) );
-            int closest = static_cast<int>( std::abs( ( posx() - ax ) * ( by - ay ) - ( posy() - ay ) *
-                                            ( bx - ax ) ) / normal );
+            double normal = sqrt( static_cast<float>( ( bx - ax ) * ( bx - ax ) + ( by - ay ) * ( by - ay ) ) );
+            int closest = static_cast<int>( abs( ( posx() - ax ) * ( by - ay ) - ( posy() - ay ) *
+                                                 ( bx - ax ) ) / normal );
 
             if( size > closest ) {
                 danger = i;
@@ -1424,15 +1110,10 @@ void npc::make_angry()
         return; // We're already angry!
     }
 
-    // player allies that become angry should stop being player allies
-    if( is_player_ally() ) {
-        mutiny();
-    }
-
     // Make associated faction, if any, angry at the player too.
-    if( my_fac && my_fac->id != faction_id( "no_faction" ) && my_fac->id != faction_id( "amf" ) ) {
-        my_fac->likes_u = std::min( -15, my_fac->likes_u - 5 );
-        my_fac->respects_u = std::min( -15, my_fac->respects_u - 5 );
+    if( my_fac != nullptr ) {
+        my_fac->likes_u = std::max( -50, my_fac->likes_u - 50 );
+        my_fac->respects_u = std::max( -50, my_fac->respects_u - 50 );
     }
     if( op_of_u.fear > 10 + personality.aggression + personality.bravery ) {
         set_attitude( NPCATT_FLEE_TEMP ); // We don't want to take u on!
@@ -1475,7 +1156,13 @@ std::vector<skill_id> npc::skills_offered_to( const player &p ) const
 
 std::vector<matype_id> npc::styles_offered_to( const player &p ) const
 {
-    return p.martial_arts_data.get_unknown_styles( martial_arts_data );
+    std::vector<matype_id> ret;
+    for( auto &i : ma_styles ) {
+        if( !p.has_martialart( i ) ) {
+            ret.push_back( i );
+        }
+    }
+    return ret;
 }
 
 void npc::decide_needs()
@@ -1485,18 +1172,7 @@ void npc::decide_needs()
         elem = 20;
     }
     if( weapon.is_gun() ) {
-        int ups_drain = weapon.get_gun_ups_drain();
-        if( ups_drain > 0 ) {
-            int ups_charges = charges_of( itype_UPS_off, ups_drain ) +
-                              charges_of( itype_UPS_off, ups_drain );
-            needrank[need_ammo] = static_cast<double>( ups_charges ) / ups_drain;
-        } else {
-            needrank[need_ammo] = get_ammo( ammotype( *weapon.type->gun->ammo.begin() ) ).size();
-        }
-        needrank[need_ammo] *= 5;
-    }
-    if( !base_location ) {
-        needrank[need_safety] = 1;
+        needrank[need_ammo] = 5 * get_ammo( ammotype( *weapon.type->gun->ammo.begin() ) ).size();
     }
 
     needrank[need_weapon] = weapon_value( weapon );
@@ -1505,9 +1181,12 @@ void npc::decide_needs()
     invslice slice = inv.slice();
     for( auto &i : slice ) {
         item inventory_item = i->front();
-        if( const item *food = inventory_item.get_food() ) {
-            needrank[ need_food ] += nutrition_for( *food ) / 4.0;
-            needrank[ need_drink ] += food->get_comestible()->quench / 4.0;
+        if( inventory_item.is_food( ) ) {
+            needrank[ need_food ] += nutrition_for( inventory_item ) / 4.0;
+            needrank[ need_drink ] += inventory_item.get_comestible()->quench / 4.0;
+        } else if( inventory_item.is_food_container() ) {
+            needrank[ need_food ] += nutrition_for( inventory_item.contents.front() ) / 4.0;
+            needrank[ need_drink ] += inventory_item.contents.front().get_comestible()->quench / 4.0;
         }
     }
     needs.clear();
@@ -1537,11 +1216,11 @@ void npc::decide_needs()
     }
 }
 
-void npc::say( const std::string &line, const sounds::sound_t spriority ) const
+void npc::say( const std::string &line, const int priority ) const
 {
     std::string formatted_line = line;
     parse_tags( formatted_line, g->u, *this );
-    if( has_trait( trait_MUTE ) ) {
+    if( has_trait( trait_id( "MUTE" ) ) ) {
         return;
     }
 
@@ -1555,6 +1234,7 @@ void npc::say( const std::string &line, const sounds::sound_t spriority ) const
         return;
     }
     // Sound happens even if we can't hear it
+    sounds::sound_t spriority = static_cast<sounds::sound_t>( priority );
     if( spriority == sounds::sound_t::order || spriority == sounds::sound_t::alert ) {
         sounds::sound( pos(), get_shout_volume(), spriority, sound, false, "speech",
                        male ? "NPC_m" : "NPC_f" );
@@ -1566,7 +1246,7 @@ void npc::say( const std::string &line, const sounds::sound_t spriority ) const
 
 bool npc::wants_to_sell( const item &it ) const
 {
-    if( !it.is_owned_by( *this ) ) {
+    if( my_fac != it.get_owner() ) {
         return false;
     }
     const int market_price = it.price( true );
@@ -1603,63 +1283,9 @@ bool npc::wants_to_buy( const item &/*it*/, int at_price, int /*market_price*/ )
     return at_price >= 80;
 }
 
-// Will the NPC freely exchange items with the player?
-bool npc::will_exchange_items_freely() const
-{
-    return is_player_ally();
-}
-
-// What's the maximum credit the NPC is willing to extend to the player?
-// This is currently very scrooge-like; NPCs are only likely to extend a few dollars
-// of credit at most.
-int npc::max_credit_extended() const
-{
-    if( is_player_ally() ) {
-        return INT_MAX;
-    }
-
-    const int credit_trust    = 50;
-    const int credit_value    = 50;
-    const int credit_fear     = 50;
-    const int credit_altruism = 100;
-    const int credit_anger    = -200;
-
-    return std::max( 0,
-                     op_of_u.trust * credit_trust +
-                     op_of_u.value * credit_value +
-                     op_of_u.fear  * credit_fear  +
-                     personality.altruism * credit_altruism +
-                     op_of_u.anger * credit_anger
-                   );
-}
-
-// How much is the NPC willing to owe the player?
-// This is much more generous, as it's the essentially the player holding the risk here.
-int npc::max_willing_to_owe() const
-{
-    if( is_player_ally() ) {
-        return INT_MAX;
-    }
-
-    const int credit_trust    = 10000;
-    const int credit_value    = 10000;
-    const int credit_fear     = 10000;
-    const int credit_altruism = 0;
-    const int credit_anger    = -10000;
-
-    return std::max( 0,
-                     op_of_u.trust * credit_trust +
-                     op_of_u.value * credit_value +
-                     op_of_u.fear  * credit_fear  +
-                     personality.altruism * credit_altruism +
-                     op_of_u.anger * credit_anger
-                   );
-
-}
-
 void npc::shop_restock()
 {
-    if( ( restock != calendar::turn_zero ) && ( ( calendar::turn - restock ) < 3_days ) ) {
+    if( calendar::turn - restock < 3_days ) {
         return;
     }
 
@@ -1681,10 +1307,10 @@ void npc::shop_restock()
     int shop_value = 75000;
     if( my_fac ) {
         shop_value = my_fac->wealth * 0.0075;
-        if( mission == NPC_MISSION_SHOPKEEP && !my_fac->currency.is_empty() ) {
+        if( mission == NPC_MISSION_SHOPKEEP && !my_fac->currency.empty() ) {
             item my_currency( my_fac->currency );
             if( !my_currency.is_null() ) {
-                my_currency.set_owner( *this );
+                my_currency.set_owner( my_fac );
                 int my_amount = rng( 5, 15 ) * shop_value / 100 / my_currency.price( true );
                 for( int lcv = 0; lcv < my_amount; lcv++ ) {
                     ret.push_back( my_currency );
@@ -1696,23 +1322,15 @@ void npc::shop_restock()
     int count = 0;
     bool last_item = false;
     while( shop_value > 0 && total_space > 0_ml && !last_item ) {
-        item tmpit = item_group::item_from( from, calendar::turn );
+        item tmpit = item_group::item_from( from, 0 );
         if( !tmpit.is_null() && total_space >= tmpit.volume() ) {
-            tmpit.set_owner( *this );
+            tmpit.set_owner( my_fac );
             ret.push_back( tmpit );
             shop_value -= tmpit.price( true );
             total_space -= tmpit.volume();
             count += 1;
             last_item = count > 10 && one_in( 100 );
         }
-    }
-
-    // This removes some items according to item spawn scaling factor,
-    const float spawn_rate = get_option<float>( "ITEM_SPAWNRATE" );
-    if( spawn_rate < 1 ) {
-        ret.remove_if( [spawn_rate]( auto & ) {
-            return !( rng_float( 0, 1 ) < spawn_rate );
-        } );
     }
 
     has_new_items = true;
@@ -1746,8 +1364,7 @@ int npc::value( const item &it ) const
 
 int npc::value( const item &it, int market_price ) const
 {
-    if( it.is_dangerous() || ( it.has_flag( "BOMB" ) && it.active ) ||
-        it.made_of( phase_id::LIQUID ) ) {
+    if( it.is_dangerous() || ( it.has_flag( "BOMB" ) && it.active ) || it.made_of( LIQUID ) ) {
         // NPCs won't be interested in buying active explosives or spilled liquids
         return -1000;
     }
@@ -1782,13 +1399,11 @@ int npc::value( const item &it, int market_price ) const
 
     if( it.is_ammo() ) {
         if( weapon.is_gun() && weapon.ammo_types().count( it.ammo_type() ) ) {
-            // TODO: magazines - don't count ammo as usable if the weapon isn't.
-            ret += 14;
+            ret += 14; // TODO: magazines - don't count ammo as usable if the weapon isn't.
         }
 
         if( has_gun_for_ammo( it.ammo_type() ) ) {
-            // TODO: consider making this cumulative (once was)
-            ret += 14;
+            ret += 14; // TODO: consider making this cumulative (once was)
         }
     }
 
@@ -1801,13 +1416,13 @@ int npc::value( const item &it, int market_price ) const
         }
     }
 
-    // Practical item value is more important than price
-    ret *= 50;
-
     // TODO: Sometimes we want more than one tool?  Also we don't want EVERY tool.
     if( it.is_tool() && !has_amount( it.typeId(), 1 ) ) {
-        ret += market_price * 0.2; // 20% premium for fresh tools
+        ret += 8;
     }
+
+    // Practical item value is more important than price
+    ret *= 50;
     ret += market_price;
     return ret;
 }
@@ -1815,20 +1430,9 @@ int npc::value( const item &it, int market_price ) const
 void healing_options::clear_all()
 {
     bandage = false;
-    disinfect = false;
     bleed = false;
     bite = false;
     infect = false;
-}
-
-bool healing_options::all_false()
-{
-    return !any_true();
-}
-
-bool healing_options::any_true()
-{
-    return bandage || bleed || bite || infect || disinfect;
 }
 
 void healing_options::set_all()
@@ -1837,7 +1441,6 @@ void healing_options::set_all()
     bleed = true;
     bite = true;
     infect = true;
-    disinfect = true;
 }
 
 bool npc::has_healing_item( healing_options try_to_fix )
@@ -1868,9 +1471,6 @@ healing_options npc::has_healing_options( healing_options try_to_fix )
         if( try_to_fix.bandage && !fix_p->bandage && actor.bandages_power > 0.0f ) {
             fix_p->bandage = true;
         }
-        if( try_to_fix.disinfect && !fix_p->disinfect && actor.disinfectant_power > 0.0f ) {
-            fix_p->disinfect = true;
-        }
         if( try_to_fix.bleed && !fix_p->bleed && actor.bleed > 0 ) {
             fix_p->bleed = true;
         }
@@ -1882,7 +1482,6 @@ healing_options npc::has_healing_options( healing_options try_to_fix )
         }
         // if we've found items for everything we're looking for, we're done
         if( ( !try_to_fix.bandage || fix_p->bandage ) &&
-            ( !try_to_fix.disinfect || fix_p->disinfect ) &&
             ( !try_to_fix.bleed || fix_p->bleed ) &&
             ( !try_to_fix.bite || fix_p->bite ) &&
             ( !try_to_fix.infect || fix_p->infect ) ) {
@@ -1905,7 +1504,6 @@ item &npc::get_healing_item( healing_options try_to_fix, bool first_best )
 
         auto &actor = dynamic_cast<const heal_actor &>( *( use->get_actor_ptr() ) );
         if( ( try_to_fix.bandage && actor.bandages_power > 0.0f ) ||
-            ( try_to_fix.disinfect && actor.disinfectant_power > 0.0f ) ||
             ( try_to_fix.bleed && actor.bleed > 0 ) ||
             ( try_to_fix.bite && actor.bite > 0 ) ||
             ( try_to_fix.infect && actor.infect > 0 ) ) {
@@ -1944,12 +1542,22 @@ void npc::set_faction_ver( int new_version )
 
 bool npc::has_faction_relationship( const player &p, const npc_factions::relationship flag ) const
 {
-    faction *p_fac = p.get_faction();
-    if( !my_fac || !p_fac ) {
+    if( !my_fac ) {
         return false;
     }
 
-    return my_fac->has_relationship( p_fac->id, flag );
+    faction_id your_fac_id;
+    if( p.is_player() ) {
+        your_fac_id = faction_id( "your_followers" );
+    } else {
+        const npc &guy = dynamic_cast<const npc &>( p );
+        if( guy.my_fac ) {
+            your_fac_id = guy.my_fac->id;
+        } else {
+            return false;
+        }
+    }
+    return my_fac->has_relationship( your_fac_id, flag );
 }
 
 bool npc::is_ally( const player &p ) const
@@ -1972,7 +1580,7 @@ bool npc::is_ally( const player &p ) const
         }
     } else {
         const npc &guy = dynamic_cast<const npc &>( p );
-        if( my_fac && guy.get_faction() && my_fac->id == guy.get_faction()->id ) {
+        if( my_fac && guy.my_fac && my_fac->id == guy.my_fac->id ) {
             return true;
         }
         if( faction_api_version < 2 ) {
@@ -2028,19 +1636,13 @@ bool npc::is_leader() const
     return attitude == NPCATT_LEAD;
 }
 
-bool npc::within_boundaries_of_camp() const
+bool npc::is_assigned_to_camp() const
 {
-    const int x = global_omt_location().x;
-    const int y = global_omt_location().y;
-    for( int x2 = x - 3; x2 < x + 3; x2++ ) {
-        for( int y2 = y - 3; y2 < y + 3; y2++ ) {
-            cata::optional<basecamp *> bcp = overmap_buffer.find_camp( point( x2, y2 ) );
-            if( bcp ) {
-                return true;
-            }
-        }
+    cata::optional<basecamp *> bcp = overmap_buffer.find_camp( global_omt_location().xy() );
+    if( !bcp ) {
+        return false;
     }
-    return false;
+    return !has_companion_mission() && mission == NPC_MISSION_GUARD_ALLY;
 }
 
 bool npc::is_enemy() const
@@ -2115,6 +1717,7 @@ Creature::Attitude npc::attitude_to( const Creature &other ) const
         case MATT_FLEE:
             return A_NEUTRAL;
         case MATT_FRIEND:
+        case MATT_ZLAVE:
             return A_FRIENDLY;
         case MATT_ATTACK:
             return A_HOSTILE;
@@ -2124,36 +1727,6 @@ Creature::Attitude npc::attitude_to( const Creature &other ) const
     }
 
     return A_NEUTRAL;
-}
-
-void npc::npc_dismount()
-{
-    if( !mounted_creature || !has_effect( effect_riding ) ) {
-        add_msg( m_debug, "NPC %s tried to dismount, but they have no mount, or they are not riding",
-                 disp_name() );
-        return;
-    }
-    cata::optional<tripoint> pnt;
-    for( const auto &elem : g->m.points_in_radius( pos(), 1 ) ) {
-        if( g->is_empty( elem ) ) {
-            pnt = elem;
-            break;
-        }
-    }
-    if( !pnt ) {
-        add_msg( m_debug, "NPC %s could not find a place to dismount.", disp_name() );
-        return;
-    }
-    remove_effect( effect_riding );
-    if( mounted_creature->has_flag( MF_RIDEABLE_MECH ) &&
-        !mounted_creature->type->mech_weapon.is_empty() ) {
-        remove_item( weapon );
-    }
-    mounted_creature->remove_effect( effect_ridden );
-    mounted_creature->add_effect( effect_controlled, 5_turns );
-    mounted_creature = nullptr;
-    setpos( *pnt );
-    mod_moves( -100 );
 }
 
 int npc::smash_ability() const
@@ -2201,7 +1774,7 @@ bool npc::is_active() const
 
 int npc::follow_distance() const
 {
-    // HACK: If the player is standing on stairs, follow closely
+    // If the player is standing on stairs, follow closely
     // This makes the stair hack less painful to use
     if( is_walking_with() &&
         ( g->m.has_flag( TFLAG_GOES_DOWN, g->u.pos() ) ||
@@ -2238,50 +1811,39 @@ nc_color npc::basic_symbol_color() const
 int npc::print_info( const catacurses::window &w, int line, int vLines, int column ) const
 {
     const int last_line = line + vLines;
-    const int iWidth = getmaxx( w ) - 2;
+    const unsigned int iWidth = getmaxx( w ) - 2;
     // First line of w is the border; the next 4 are terrain info, and after that
     // is a blank line. w is 13 characters tall, and we can't use the last one
     // because it's a border as well; so we have lines 6 through 11.
     // w is also 48 characters wide - 2 characters for border = 46 characters for us
-
-    // Print health bar and NPC name on the first line.
-    std::pair<std::string, nc_color> bar = get_hp_bar( hp_percentage(), 100 );
-    mvwprintz( w, point( column, line ), bar.second, bar.first );
-    const int bar_max_width = 5;
-    const int bar_width = utf8_width( bar.first );
-    for( int i = 0; i < bar_max_width - bar_width; ++i ) {
-        mvwprintz( w, point( column + 4 - i, line ), c_white, "." );
-    }
-    trim_and_print( w, point( column + bar.first.length() + 1, line ), iWidth, basic_symbol_color(),
-                    name );
-
-    // Hostility indicator in the second line.
-    Attitude att = attitude_to( g->u );
-    const std::pair<translation, nc_color> res = Creature::get_attitude_ui_data( att );
-    mvwprintz( w, point( column, ++line ), res.second, res.first.translated() );
-
-    // Awareness indicator on the third line.
-    std::string senses_str = sees( g->u ) ? _( "Aware of your presence" ) :
-                             _( "Unaware of you" );
-    mvwprintz( w, point( column, ++line ), sees( g->u ) ? c_yellow : c_green, senses_str );
-
-    // Print what item the NPC is holding if any on the fourth line.
+    mvwprintz( w, line++, column, c_white, _( "NPC: %s" ), name );
     if( is_armed() ) {
-        mvwprintz( w, point( column, ++line ), c_light_gray, _( "Wielding: " ) );
-        trim_and_print( w, point( column + utf8_width( _( "Wielding: " ) ), line ), iWidth, c_red,
-                        weapon.tname() );
+        trim_and_print( w, line++, column, iWidth, c_red, _( "Wielding a %s" ), weapon.tname() );
     }
 
-    // Worn gear list on following lines.
+    const auto enumerate_print = [ w, last_line, column, iWidth, &line ]( std::string & str_in,
+    nc_color color ) {
+        // TODO: Replace with 'fold_and_print()'. Extend it with a 'height' argument to prevent leaking.
+        size_t split;
+        do {
+            split = ( str_in.length() <= iWidth ) ? std::string::npos : str_in.find_last_of( ' ',
+                    static_cast<int>( iWidth ) );
+            if( split == std::string::npos ) {
+                mvwprintz( w, line, column, color, str_in );
+            } else {
+                mvwprintz( w, line, column, color, str_in.substr( 0, split ) );
+            }
+            str_in = str_in.substr( split + 1 );
+            line++;
+        } while( split != std::string::npos && line <= last_line );
+    };
+
     const std::string worn_str = enumerate_as_string( worn.begin(), worn.end(), []( const item & it ) {
         return it.tname();
     } );
     if( !worn_str.empty() ) {
-        std::vector<std::string> worn_lines = foldstring( _( "Wearing: " ) + worn_str, iWidth );
-        int worn_numlines = worn_lines.size();
-        for( int i = 0; i < worn_numlines && line < last_line; i++ ) {
-            trim_and_print( w, point( column, ++line ), iWidth, c_light_gray, worn_lines[i] );
-        }
+        std::string wearing = _( "Wearing: " ) + remove_color_tags( worn_str );
+        enumerate_print( wearing, c_blue );
     }
 
     // as of now, visibility of mutations is between 0 and 10
@@ -2296,16 +1858,13 @@ int npc::print_info( const catacurses::window &w, int line, int vLines, int colu
     if( per <= 1 ) {
         visibility_cap = INT_MAX;
     } else {
-        visibility_cap = std::round( dist * dist / 20.0 / ( per - 1 ) );
+        visibility_cap = round( dist * dist / 20.0 / ( per - 1 ) );
     }
 
-    const std::string trait_str = visible_mutations( visibility_cap );
+    const auto trait_str = visible_mutations( visibility_cap );
     if( !trait_str.empty() ) {
-        std::vector<std::string> trait_lines = foldstring( _( "Traits: " ) + trait_str, iWidth );
-        int trait_numlines = trait_lines.size();
-        for( int i = 0; i < trait_numlines && line < last_line; i++ ) {
-            trim_and_print( w, point( column, ++line ), iWidth, c_light_gray, trait_lines[i] );
-        }
+        std::string mutations = _( "Traits: " ) + remove_color_tags( trait_str );
+        enumerate_print( mutations, c_green );
     }
 
     return line;
@@ -2313,150 +1872,114 @@ int npc::print_info( const catacurses::window &w, int line, int vLines, int colu
 
 std::string npc::opinion_text() const
 {
-    std::string ret;
+    std::stringstream ret;
     if( op_of_u.trust <= -10 ) {
-        ret += _( "Completely untrusting" );
+        ret << _( "Completely untrusting" );
     } else if( op_of_u.trust <= -6 ) {
-        ret += _( "Very untrusting" );
+        ret << _( "Very untrusting" );
     } else if( op_of_u.trust <= -3 ) {
-        ret += _( "Untrusting" );
+        ret << _( "Untrusting" );
     } else if( op_of_u.trust <= 2 ) {
-        ret += _( "Uneasy" );
+        ret << _( "Uneasy" );
     } else if( op_of_u.trust <= 4 ) {
-        ret += _( "Trusting" );
+        ret << _( "Trusting" );
     } else if( op_of_u.trust < 10 ) {
-        ret += _( "Very trusting" );
+        ret << _( "Very trusting" );
     } else {
-        ret += _( "Completely trusting" );
+        ret << _( "Completely trusting" );
     }
 
-    ret += string_format( _( " (Trust: %d); " ), op_of_u.trust );
+    ret << " (" << _( "Trust: " ) << op_of_u.trust << "); ";
 
     if( op_of_u.fear <= -10 ) {
-        ret += _( "Thinks you're laughably harmless" );
+        ret << _( "Thinks you're laughably harmless" );
     } else if( op_of_u.fear <= -6 ) {
-        ret += _( "Thinks you're harmless" );
+        ret << _( "Thinks you're harmless" );
     } else if( op_of_u.fear <= -3 ) {
-        ret += _( "Unafraid" );
+        ret << _( "Unafraid" );
     } else if( op_of_u.fear <= 2 ) {
-        ret += _( "Wary" );
+        ret << _( "Wary" );
     } else if( op_of_u.fear <= 5 ) {
-        ret += _( "Afraid" );
+        ret << _( "Afraid" );
     } else if( op_of_u.fear < 10 ) {
-        ret += _( "Very afraid" );
+        ret << _( "Very afraid" );
     } else {
-        ret += _( "Terrified" );
+        ret << _( "Terrified" );
     }
 
-    ret += string_format( _( " (Fear: %d); " ), op_of_u.fear );
+    ret << " (" << _( "Fear: " ) << op_of_u.fear << "); ";
 
     if( op_of_u.value <= -10 ) {
-        ret += _( "Considers you a major liability" );
+        ret << _( "Considers you a major liability" );
     } else if( op_of_u.value <= -6 ) {
-        ret += _( "Considers you a burden" );
+        ret << _( "Considers you a burden" );
     } else if( op_of_u.value <= -3 ) {
-        ret += _( "Considers you an annoyance" );
+        ret << _( "Considers you an annoyance" );
     } else if( op_of_u.value <= 2 ) {
-        ret += _( "Doesn't care about you" );
+        ret << _( "Doesn't care about you" );
     } else if( op_of_u.value <= 5 ) {
-        ret += _( "Values your presence" );
+        ret << _( "Values your presence" );
     } else if( op_of_u.value < 10 ) {
-        ret += _( "Treasures you" );
+        ret << _( "Treasures you" );
     } else {
-        ret += _( "Best Friends Forever!" );
+        ret << _( "Best Friends Forever!" );
     }
 
-    ret += string_format( _( " (Value: %d); " ), op_of_u.value );
+    ret << " (" << _( "Value: " ) << op_of_u.value << "); ";
 
     if( op_of_u.anger <= -10 ) {
-        ret += _( "You can do no wrong!" );
+        ret << _( "You can do no wrong!" );
     } else if( op_of_u.anger <= -6 ) {
-        ret += _( "You're good people" );
+        ret << _( "You're good people" );
     } else if( op_of_u.anger <= -3 ) {
-        ret += _( "Thinks well of you" );
+        ret << _( "Thinks well of you" );
     } else if( op_of_u.anger <= 2 ) {
-        ret += _( "Ambivalent" );
+        ret << _( "Ambivalent" );
     } else if( op_of_u.anger <= 5 ) {
-        ret += _( "Pissed off" );
+        ret << _( "Pissed off" );
     } else if( op_of_u.anger < 10 ) {
-        ret += _( "Angry" );
+        ret << _( "Angry" );
     } else {
-        ret += _( "About to kill you" );
+        ret << _( "About to kill you" );
     }
 
-    ret += string_format( _( " (Anger: %d)" ), op_of_u.anger );
+    ret << " (" << _( "Anger: " ) << op_of_u.anger << ")";
 
-    return ret;
+    return ret.str();
 }
 
-static void maybe_shift( cata::optional<tripoint> &pos, const point &d )
+static void maybe_shift( cata::optional<tripoint> &pos, int dx, int dy )
 {
     if( pos ) {
-        *pos += d;
+        pos->x += dx;
+        pos->y += dy;
     }
 }
 
-static void maybe_shift( tripoint &pos, const point &d )
+static void maybe_shift( tripoint &pos, int dx, int dy )
 {
     if( pos != tripoint_min ) {
-        pos += d;
+        pos.x += dx;
+        pos.y += dy;
     }
 }
 
-void npc::shift( const point &s )
+void npc::shift( int sx, int sy )
 {
-    const point shift = sm_to_ms_copy( s );
+    const int shiftx = sx * SEEX;
+    const int shifty = sy * SEEY;
 
-    setpos( pos() - shift );
+    setpos( pos() - point( shiftx, shifty ) );
 
-    maybe_shift( wanted_item_pos, point( -shift.x, -shift.y ) );
-    maybe_shift( last_player_seen_pos, point( -shift.x, -shift.y ) );
-    maybe_shift( pulp_location, point( -shift.x, -shift.y ) );
+    maybe_shift( wanted_item_pos, -shiftx, -shifty );
+    maybe_shift( last_player_seen_pos, -shiftx, -shifty );
+    maybe_shift( pulp_location, -shiftx, -shifty );
     path.clear();
 }
 
 bool npc::is_dead() const
 {
     return dead || is_dead_state();
-}
-
-void npc::reboot()
-{
-    //The NPC got into an infinite loop, in game.cpp  -monmove() - a debugmsg just popped up
-    // informing player of this.
-    // put them to sleep and reboot their brain.
-    // they can be woken up by the player, and if their brain is fixed, great,
-    // if not, they will faint again, and the NPC can be kept asleep until the bug is fixed.
-    cancel_activity();
-    path.clear();
-    last_player_seen_pos = cata::nullopt;
-    last_seen_player_turn = 999;
-    wanted_item_pos = no_goal_point;
-    guard_pos = no_goal_point;
-    goal = no_goal_point;
-    fetching_item = false;
-    has_new_items = true;
-    worst_item_value = 0;
-    mission = NPC_MISSION_NULL;
-    patience = 0;
-    ai_cache.danger = 0;
-    ai_cache.total_danger = 0;
-    ai_cache.danger_assessment = 0;
-    ai_cache.target.reset();
-    ai_cache.ally.reset();
-    ai_cache.can_heal.clear_all();
-    ai_cache.sound_alerts.clear();
-    ai_cache.s_abs_pos = tripoint_zero;
-    ai_cache.stuck = 0;
-    ai_cache.guard_pos = cata::nullopt;
-    ai_cache.my_weapon_value = 0;
-    ai_cache.friends.clear();
-    ai_cache.dangerous_explosives.clear();
-    ai_cache.threat_map.clear();
-    ai_cache.searched_tiles.clear();
-    activity = player_activity();
-    clear_destination();
-    add_effect( effect_npc_suspend, 24_hours, num_bp, true, 1 );
 }
 
 void npc::die( Creature *nkiller )
@@ -2466,36 +1989,12 @@ void npc::die( Creature *nkiller )
         // *only* set to true in this function!
         return;
     }
-    if( assigned_camp ) {
-        cata::optional<basecamp *> bcp = overmap_buffer.find_camp( ( *assigned_camp ).xy() );
-        if( bcp ) {
-            ( *bcp )->remove_assignee( getID() );
-        }
-    }
-    assigned_camp = cata::nullopt;
     // Need to unboard from vehicle before dying, otherwise
     // the vehicle code cannot find us
     if( in_vehicle ) {
         g->m.unboard_vehicle( pos(), true );
     }
-    if( is_mounted() ) {
-        monster *critter = mounted_creature.get();
-        critter->remove_effect( effect_ridden );
-        critter->mounted_player = nullptr;
-        critter->mounted_player_id = character_id();
-    }
-    // if this NPC was the only member of a micro-faction, clean it up.
-    if( my_fac ) {
-        if( !is_fake() && !is_hallucination() ) {
-            if( my_fac->members.size() == 1 ) {
-                for( auto elem : inv_dump() ) {
-                    elem->remove_owner();
-                    elem->remove_old_owner();
-                }
-            }
-            my_fac->remove_member( getID() );
-        }
-    }
+
     dead = true;
     Character::die( nkiller );
 
@@ -2510,18 +2009,35 @@ void npc::die( Creature *nkiller )
         add_msg( _( "%s dies!" ), name );
     }
 
-    if( Character *ch = dynamic_cast<Character *>( killer ) ) {
-        g->events().send<event_type::character_kills_character>( ch->getID(), getID(), get_name() );
-    }
-
     if( killer == &g->u && ( !guaranteed_hostile() || hit_by_player ) ) {
+        g->record_npc_kill( *this );
         bool cannibal = g->u.has_trait( trait_CANNIBAL );
         bool psycho = g->u.has_trait( trait_PSYCHOPATH );
-        if( g->u.has_trait( trait_SAPIOVORE ) || psycho ) {
-            // No morale effect
+        if( g->u.has_trait( trait_SAPIOVORE ) ) {
+            g->u.add_memorial_log( pgettext( "memorial_male",
+                                             "Caught and killed an ape.  Prey doesn't have a name." ),
+                                   pgettext( "memorial_female", "Caught and killed an ape.  Prey doesn't have a name." ) );
+        } else if( psycho && cannibal ) {
+            g->u.add_memorial_log( pgettext( "memorial_male",
+                                             "Killed a delicious-looking innocent, %s, in cold blood." ),
+                                   pgettext( "memorial_female", "Killed a delicious-looking innocent, %s, in cold blood." ),
+                                   name );
+        } else if( psycho ) {
+            g->u.add_memorial_log( pgettext( "memorial_male",
+                                             "Killed an innocent, %s, in cold blood.  They were weak." ),
+                                   pgettext( "memorial_female", "Killed an innocent, %s, in cold blood.  They were weak." ),
+                                   name );
         } else if( cannibal ) {
+            g->u.add_memorial_log( pgettext( "memorial_male", "Killed an innocent, %s." ),
+                                   pgettext( "memorial_female", "Killed an innocent, %s." ),
+                                   name );
             g->u.add_morale( MORALE_KILLED_INNOCENT, -5, 0, 2_days, 3_hours );
         } else {
+            g->u.add_memorial_log( pgettext( "memorial_male",
+                                             "Killed an innocent person, %s, in cold blood and felt terrible afterwards." ),
+                                   pgettext( "memorial_female",
+                                             "Killed an innocent person, %s, in cold blood and felt terrible afterwards." ),
+                                   name );
             g->u.add_morale( MORALE_KILLED_INNOCENT, -100, 0, 2_days, 3_hours );
         }
     }
@@ -2614,6 +2130,11 @@ std::string npc_attitude_name( npc_attitude att )
     return _( "Unknown attitude" );
 }
 
+void npc::setID( int i )
+{
+    this->player::setID( i );
+}
+
 //message related stuff
 
 //message related stuff
@@ -2630,17 +2151,16 @@ void npc::add_msg_player_or_npc( const std::string &/*player_msg*/,
     }
 }
 
-void npc::add_msg_if_npc( const game_message_params &params, const std::string &msg ) const
+void npc::add_msg_if_npc( const game_message_type type, const std::string &msg ) const
 {
-    add_msg( params, replace_with_npc_name( msg ) );
+    add_msg( type, replace_with_npc_name( msg ) );
 }
 
-void npc::add_msg_player_or_npc( const game_message_params &params,
-                                 const std::string &/*player_msg*/,
+void npc::add_msg_player_or_npc( const game_message_type type, const std::string &/*player_msg*/,
                                  const std::string &npc_msg ) const
 {
     if( g->u.sees( *this ) ) {
-        add_msg( params, replace_with_npc_name( npc_msg ) );
+        add_msg( type, replace_with_npc_name( npc_msg ) );
     }
 }
 
@@ -2650,7 +2170,7 @@ void npc::add_msg_player_or_say( const std::string &/*player_msg*/,
     say( npc_speech );
 }
 
-void npc::add_msg_player_or_say( const game_message_params &/*params*/,
+void npc::add_msg_player_or_say( const game_message_type /*type*/,
                                  const std::string &/*player_msg*/, const std::string &npc_speech ) const
 {
     say( npc_speech );
@@ -2714,7 +2234,7 @@ void npc::on_load()
     if( dt > 0_turns ) {
         // This ensures food is properly rotten at load
         // Otherwise NPCs try to eat rotten food and fail
-        process_items();
+        process_active_items();
         // give NPCs that are doing activities a pile of moves
         if( has_destination() || activity ) {
             mod_moves( to_moves<int>( dt ) );
@@ -2733,15 +2253,7 @@ void npc::on_load()
     if( g->m.veh_at( pos() ).part_with_feature( VPFLAG_BOARDABLE, true ) && !in_vehicle ) {
         g->m.board_vehicle( pos(), this );
     }
-    if( has_effect( effect_riding ) && !mounted_creature ) {
-        if( const monster *const mon = g->critter_at<monster>( pos() ) ) {
-            mounted_creature = g->shared_from( *mon );
-        } else {
-            add_msg( m_debug, "NPC is meant to be riding, though the mount is not found when %s is loaded",
-                     disp_name() );
-        }
-    }
-    if( has_trait( trait_HALLUCINATION ) ) {
+    if( has_trait( trait_id( "HALLUCINATION" ) ) ) {
         hallucination = true;
     }
 }
@@ -2752,6 +2264,54 @@ void npc_chatbin::add_new_mission( mission *miss )
         return;
     }
     missions.push_back( miss );
+}
+
+epilogue::epilogue()
+{
+    id = "NONE";
+    group = "NONE";
+    text = "Error: file lost!";
+}
+
+epilogue_map epilogue::_all_epilogue;
+
+void epilogue::load_epilogue( JsonObject &jsobj )
+{
+    epilogue base;
+    base.id = jsobj.get_string( "id" );
+    base.group = jsobj.get_string( "group" );
+    base.text = jsobj.get_string( "text" );
+
+    _all_epilogue[base.id] = base;
+}
+
+epilogue *epilogue::find_epilogue( const std::string &ident )
+{
+    epilogue_map::iterator found = _all_epilogue.find( ident );
+    if( found != _all_epilogue.end() ) {
+        return &( found->second );
+    } else {
+        debugmsg( "Tried to get invalid epilogue template: %s", ident.c_str() );
+        static epilogue null_epilogue;
+        return &null_epilogue;
+    }
+}
+
+void epilogue::random_by_group( std::string group )
+{
+    std::vector<epilogue> v;
+    for( const auto &epi : _all_epilogue ) {
+        if( epi.second.group == group ) {
+            v.push_back( epi.second );
+        }
+    }
+    if( v.empty() ) {
+        return;
+    }
+    epilogue epi = random_entry( v );
+    id = epi.id;
+    group = epi.group;
+    text = epi.text;
 }
 
 constexpr tripoint npc::no_goal_point;
@@ -2783,7 +2343,7 @@ bool npc::dispose_item( item_location &&obj, const std::string & )
         if( e.can_holster( *obj ) ) {
             auto ptr = dynamic_cast<const holster_actor *>( e.type->get_use( "holster" )->get_actor_ptr() );
             opts.emplace_back( dispose_option {
-                item_store_cost( *obj, e, false, obj.obtain_cost( *this ) ),
+                item_store_cost( *obj, e, false, ptr->draw_cost ),
                 [this, ptr, &e, &obj]{ ptr->store( *this, e, *obj ); }
             } );
         }
@@ -2821,11 +2381,6 @@ void npc::process_turn()
 {
     player::process_turn();
 
-    // NPCs shouldn't be using stamina, but if they have, set it back to max
-    if( calendar::once_every( 1_minutes ) && get_stamina() < get_stamina_max() ) {
-        set_stamina( get_stamina_max() );
-    }
-
     if( is_player_ally() && calendar::once_every( 1_hours ) &&
         get_hunger() < 200 && get_thirst() < 100 && op_of_u.trust < 5 ) {
         // Friends who are well fed will like you more
@@ -2849,37 +2404,14 @@ void npc::process_turn()
     // TODO: Make NPCs leave the player if there's a path out of map and player is sleeping/unseen/etc.
 }
 
-bool npc::invoke_item( item *used, const tripoint &pt )
-{
-    const auto &use_methods = used->type->use_methods;
-
-    if( use_methods.empty() ) {
-        return false;
-    } else if( use_methods.size() == 1 ) {
-        return Character::invoke_item( used, use_methods.begin()->first, pt );
-    }
-    return false;
-}
-
-bool npc::invoke_item( item *used, const std::string &method )
-{
-    return Character::invoke_item( used, method );
-}
-
-bool npc::invoke_item( item *used )
-{
-    return Character::invoke_item( used );
-}
-
 std::array<std::pair<std::string, overmap_location_str_id>, npc_need::num_needs> npc::need_data = {
     {
         { "need_none", overmap_location_str_id( "source_of_anything" ) },
-        { "need_ammo", overmap_location_str_id( "source_of_ammo" ) },
-        { "need_weapon", overmap_location_str_id( "source_of_weapons" )},
-        { "need_gun", overmap_location_str_id( "source_of_guns" ) },
+        { "need_ammo", overmap_location_str_id( "source_of_ammo" )},
+        { "need_weapon", overmap_location_str_id( "source_of_weapon" )},
+        { "need_gun", overmap_location_str_id( "source_of_gun" ) },
         { "need_food", overmap_location_str_id( "source_of_food" )},
-        { "need_drink", overmap_location_str_id( "source_of_drink" ) },
-        { "need_safety", overmap_location_str_id( "source_of_safety" ) }
+        { "need_drink", overmap_location_str_id( "source_of_drink" ) }
     }
 };
 
@@ -2904,8 +2436,8 @@ bool npc::will_accept_from_player( const item &it ) const
         return false;
     }
 
-    if( is_minion() || g->u.has_trait( trait_DEBUG_MIND_CONTROL ) ||
-        it.has_flag( flag_NPC_SAFE ) ) {
+    if( is_minion() || g->u.has_trait( trait_id( "DEBUG_MIND_CONTROL" ) ) ||
+        it.has_flag( "NPC_SAFE" ) ) {
         return true;
     }
 
@@ -2913,8 +2445,9 @@ bool npc::will_accept_from_player( const item &it ) const
         return false;
     }
 
-    if( it.is_comestible() ) {
-        if( it.get_comestible_fun() < 0 || it.poison > 0 ) {
+    if( const auto &comest = it.is_container() ? it.get_contained().get_comestible() :
+                             it.get_comestible() ) {
+        if( comest->fun < 0 || it.poison > 0 ) {
             return false;
         }
     }
@@ -2987,7 +2520,7 @@ mfaction_id npc::get_monster_faction() const
         return player_fac.id();
     }
 
-    if( has_trait( trait_BEE ) ) {
+    if( has_trait( trait_id( "BEE" ) ) ) {
         return bee_fac.id();
     }
 
@@ -2996,41 +2529,34 @@ mfaction_id npc::get_monster_faction() const
 
 std::string npc::extended_description() const
 {
-    std::string ss;
+    std::ostringstream ss;
     // For some reason setting it using str or constructor doesn't work
-    ss += Character::extended_description();
+    ss << Character::extended_description();
 
-    ss += "\n--\n";
+    ss << std::endl << "--" << std::endl;
     if( attitude == NPCATT_KILL ) {
-        ss += _( "Is trying to kill you." );
+        ss << _( "Is trying to kill you." );
     } else if( attitude == NPCATT_FLEE || attitude == NPCATT_FLEE_TEMP ) {
-        ss += _( "Is trying to flee from you." );
+        ss << _( "Is trying to flee from you." );
     } else if( is_player_ally() ) {
-        ss += _( "Is your friend." );
+        ss << _( "Is your friend." );
     } else if( is_following() ) {
-        ss += _( "Is following you." );
+        ss << _( "Is following you." );
     } else if( is_leader() ) {
-        ss += _( "Is guiding you." );
+        ss << _( "Is guiding you." );
     } else if( guaranteed_hostile() ) {
-        ss += _( "Will try to kill you or flee from you if you reveal yourself." );
+        ss << _( "Will try to kill you or flee from you if you reveal yourself." );
     } else {
-        ss += _( "Is neutral." );
+        ss << _( "Is neutral." );
     }
 
     if( hit_by_player ) {
-        ss += "--\n";
-        ss += _( "Is still innocent and killing them will be considered murder." );
+        ss << "--" << std::endl;
+        ss << _( "Is still innocent and killing them will be considered murder." );
         // TODO: "But you don't care because you're an edgy psycho"
     }
 
-    return replace_colors( ss );
-}
-
-std::string npc::get_epilogue() const
-{
-    return SNIPPET.random_from_category(
-               male ? "epilogue_npc_male" : "epilogue_npc_female"
-           ).value_or( translation() ).translated();
+    return replace_colors( ss.str() );
 }
 
 void npc::set_companion_mission( npc &p, const std::string &mission_id )
@@ -3144,7 +2670,7 @@ void npc::set_mission( npc_mission new_mission )
         mission = new_mission;
     }
     if( mission == NPC_MISSION_ACTIVITY ) {
-        current_activity_id = activity.id();
+        current_activity = activity.get_verb();
     }
 }
 
@@ -3175,7 +2701,7 @@ void npc::set_attitude( npc_attitude new_attitude )
              name, npc_attitude_id( attitude ), npc_attitude_id( new_attitude ) );
     attitude_group new_group = get_attitude_group( new_attitude );
     attitude_group old_group = get_attitude_group( attitude );
-    if( new_group != old_group && !is_fake() && g->u.sees( *this ) ) {
+    if( new_group != old_group && !is_fake() ) {
         switch( new_group ) {
             case attitude_group::hostile:
                 add_msg_if_npc( m_bad, _( "<npcname> gets angry!" ) );
@@ -3197,8 +2723,8 @@ void npc::set_attitude( npc_attitude new_attitude )
 
 npc_follower_rules::npc_follower_rules()
 {
-    engagement = combat_engagement::CLOSE;
-    aim = aim_rule::WHEN_CONVENIENT;
+    engagement = ENGAGE_CLOSE;
+    aim = AIM_WHEN_CONVENIENT;
     overrides = ally_rule::DEFAULT;
     override_enable = ally_rule::DEFAULT;
 

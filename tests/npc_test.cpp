@@ -1,34 +1,33 @@
+#include <stddef.h>
+#include <string>
 #include <memory>
 #include <set>
-#include <sstream>
-#include <string>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 #include "avatar.h"
-#include "calendar.h"
 #include "catch/catch.hpp"
 #include "common_types.h"
 #include "faction.h"
 #include "field.h"
-#include "field_type.h"
 #include "game.h"
-#include "line.h"
 #include "map.h"
 #include "map_helpers.h"
-#include "memory_fast.h"
 #include "npc.h"
 #include "npc_class.h"
-#include "optional.h"
 #include "overmapbuffer.h"
-#include "pimpl.h"
-#include "player_helpers.h"
-#include "point.h"
 #include "text_snippets.h"
-#include "type_id.h"
 #include "veh_type.h"
 #include "vehicle.h"
 #include "vpart_position.h"
+#include "calendar.h"
+#include "line.h"
+#include "optional.h"
+#include "pimpl.h"
+#include "string_id.h"
+#include "type_id.h"
+#include "point.h"
 
 class Creature;
 
@@ -173,39 +172,44 @@ TEST_CASE( "on_load-similar-to-per-turn", "[.]" )
 TEST_CASE( "snippet-tag-test" )
 {
     // Actually used tags
-    static const std::set<std::string> npc_talk_tags = {
-        {
+    static const std::set<std::string> npc_talk_tags = {{
             "<name_b>", "<thirsty>", "<swear!>",
             "<sad>", "<greet>", "<no>",
             "<im_leaving_you>", "<ill_kill_you>", "<ill_die>",
             "<wait>", "<no_faction>", "<name_g>",
             "<keep_up>", "<yawn>", "<very>",
-            "<okay>", "<really>",
+            "<okay>", "<catch_up>", "<really>",
             "<let_me_pass>", "<done_mugging>", "<happy>",
-            "<drop_it>", "<swear>", "<lets_talk>",
+            "<drop_weapon>", "<swear>", "<lets_talk>",
             "<hands_up>", "<move>", "<hungry>",
             "<fuck_you>",
         }
     };
 
     for( const auto &tag : npc_talk_tags ) {
-        for( int i = 0; i < 100; i++ ) {
-            CHECK( SNIPPET.random_from_category( tag ).has_value() );
+        const auto ids = SNIPPET.all_ids_from_category( tag );
+        std::set<std::string> valid_snippets;
+        for( int id : ids ) {
+            const auto &snip = SNIPPET.get( id );
+            valid_snippets.insert( snip );
         }
+
+        // We want to get all the snippets in the category
+        std::set<std::string> found_snippets;
+        // Brute force random snippets to see if they are all in their category
+        for( size_t i = 0; i < ids.size() * 100; i++ ) {
+            const auto &roll = SNIPPET.random_from_category( tag );
+            CHECK( valid_snippets.count( roll ) > 0 );
+            found_snippets.insert( roll );
+        }
+
+        CHECK( found_snippets == valid_snippets );
     }
 
-    // Special tags, those should have no replacements
-    static const std::set<std::string> special_tags = {
-        {
-            "<yrwp>", "<mywp>", "<ammo>"
-        }
-    };
-
-    for( const std::string &tag : special_tags ) {
-        for( int i = 0; i < 100; i++ ) {
-            CHECK( !SNIPPET.random_from_category( tag ).has_value() );
-        }
-    }
+    // Special tags, those should have empty replacements
+    CHECK( SNIPPET.all_ids_from_category( "<yrwp>" ).empty() );
+    CHECK( SNIPPET.all_ids_from_category( "<mywp>" ).empty() );
+    CHECK( SNIPPET.all_ids_from_category( "<ammo>" ).empty() );
 }
 
 /* Test setup. Player should always be at top-left.
@@ -344,15 +348,15 @@ TEST_CASE( "npc-movement" )
             if( type == 'V' || type == 'W' || type == 'M' ) {
                 vehicle *veh = g->m.add_vehicle( vproto_id( "none" ), p, 270, 0, 0 );
                 REQUIRE( veh != nullptr );
-                veh->install_part( point_zero, vpart_frame_vertical );
-                veh->install_part( point_zero, vpart_seat );
+                veh->install_part( point( 0, 0 ), vpart_frame_vertical );
+                veh->install_part( point( 0, 0 ), vpart_seat );
                 g->m.add_vehicle_to_cache( veh );
             }
             // spawn npcs
             if( type == 'A' || type == 'R' || type == 'W' || type == 'M'
                 || type == 'B' || type == 'C' ) {
 
-                shared_ptr_fast<npc> guy = make_shared_fast<npc>();
+                std::shared_ptr<npc> guy = std::make_shared<npc>();
                 do {
                     guy->normalize();
                     guy->randomize();
@@ -425,23 +429,35 @@ TEST_CASE( "npc-movement" )
 TEST_CASE( "npc_can_target_player" )
 {
     // Set to daytime for visibiliity
-    calendar::turn = calendar::turn_zero + 12_hours;
+    calendar::turn = HOURS( 12 );
 
     g->faction_manager_ptr->create_if_needed();
 
-    g->place_player( tripoint_zero );
+    g->place_player( tripoint( 10, 10, 0 ) );
 
     clear_npcs();
     clear_creatures();
 
-    npc &hostile = spawn_npc( g->u.pos().xy() + point_south, "thug" );
-    REQUIRE( rl_dist( g->u.pos(), hostile.pos() ) <= 1 );
-    hostile.set_attitude( NPCATT_KILL );
-    hostile.name = "Enemy NPC";
+    const auto spawn_npc = []( const int x, const int y, const std::string & npc_class ) {
+        const string_id<npc_template> test_guy( npc_class );
+        const int model_id = g->m.place_npc( 10, 10, test_guy, true );
+        g->load_npcs();
+
+        npc *guy = g->find_npc( model_id );
+        REQUIRE( guy != nullptr );
+        CHECK( !guy->in_vehicle );
+        guy->setpos( g->u.pos() + point( x, y ) );
+        return guy;
+    };
+
+    npc *hostile = spawn_npc( 0, 1, "thug" );
+    REQUIRE( rl_dist( g->u.pos(), hostile->pos() ) <= 1 );
+    hostile->set_attitude( NPCATT_KILL );
+    hostile->name = "Enemy NPC";
 
     INFO( get_list_of_npcs( "NPCs after spawning one" ) );
 
-    hostile.regen_ai_cache();
-    REQUIRE( hostile.current_target() != nullptr );
-    CHECK( hostile.current_target() == static_cast<Creature *>( &g->u ) );
+    hostile->regen_ai_cache();
+    REQUIRE( hostile->current_target() != nullptr );
+    CHECK( hostile->current_target() == static_cast<Creature *>( &g->u ) );
 }

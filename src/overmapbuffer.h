@@ -1,42 +1,35 @@
 #pragma once
-#ifndef CATA_SRC_OVERMAPBUFFER_H
-#define CATA_SRC_OVERMAPBUFFER_H
+#ifndef OVERMAPBUFFER_H
+#define OVERMAPBUFFER_H
 
-#include <array>
-#include <functional>
 #include <memory>
 #include <set>
-#include <string>
 #include <unordered_map>
-#include <utility>
 #include <vector>
+#include <array>
+#include <functional>
+#include <string>
+#include <utility>
 
 #include "enums.h"
-#include "memory_fast.h"
 #include "omdata.h"
-#include "optional.h"
-#include "overmap.h"
 #include "overmap_types.h"
+#include "optional.h"
+#include "type_id.h"
 #include "point.h"
 #include "string_id.h"
-#include "type_id.h"
 
-class basecamp;
-class character_id;
-class map_extra;
+struct mongroup;
 class monster;
 class npc;
-class vehicle;
-struct mongroup;
+struct om_vehicle;
+class overmap_special_batch;
+class overmap;
+struct radio_tower;
 struct regional_settings;
-
-struct path_type {
-    bool only_road = false;
-    bool only_water = false;
-    bool amphibious = false;
-    bool only_air = false;
-    bool avoid_danger = false;
-};
+class vehicle;
+class basecamp;
+class map_extra;
 
 struct radio_tower_reference {
     /** The radio tower itself, points into @ref overmap::radios */
@@ -98,7 +91,8 @@ struct overmap_with_local_coords {
 /*
  * Standard arguments for finding overmap terrain
  * @param origin Location of search
- * @param types vector of Terrain type/matching rule to use to find the type
+ * @param type Terrain type to search for
+ * @param match_type Matching rule to use when finding the terrain type.
  * @param search_range The maximum search distance.  If 0, OMAPX is used.
  * @param min_distance Matches within min_distance are ignored.
  * @param must_see If true, only terrain seen by the player should be searched.
@@ -109,7 +103,8 @@ struct overmap_with_local_coords {
  * @param om_special If set, the terrain must be part of the specified overmap special.
 */
 struct omt_find_params {
-    std::vector<std::pair<std::string, ot_match_type>> types;
+    std::string type;
+    ot_match_type match_type = ot_match_type::type;
     int search_range = 0;
     int min_distance = 0;
     bool must_see = false;
@@ -139,17 +134,14 @@ class overmapbuffer
          * Uses global overmap terrain coordinates, creates the
          * overmap if needed.
          */
-        const oter_id &ter( const tripoint &p );
-        void ter_set( const tripoint &p, const oter_id &id );
+        oter_id &ter( const tripoint &p );
         /**
          * Uses global overmap terrain coordinates.
          */
         bool has_note( const tripoint &p );
-        bool is_marked_dangerous( const tripoint &p );
         const std::string &note( const tripoint &p );
         void add_note( const tripoint &, const std::string &message );
         void delete_note( const tripoint &p );
-        void mark_note_dangerous( const tripoint &p, int radius, bool is_dangerous );
         bool has_extra( const tripoint &p );
         const string_id<map_extra> &extra( const tripoint &p );
         void add_extra( const tripoint &p, const string_id<map_extra> &id );
@@ -219,54 +211,54 @@ class overmapbuffer
 
         cata::optional<basecamp *> find_camp( const point &p );
         /**
-         * Get all npcs in a area with given radius around given central point.
+         * Get all npcs in a area with given radius around (x, y).
          * Only npcs on the given z-level are considered.
          * Uses square_dist for distance calculation.
-         * @param p Central point in submap coordinates.
+         * @param x,y,z are submap coordinates.
          * @param radius Maximal distance of npc from (x,y). If the npc
          * is at most this far away from (x,y) it will be returned.
          * A radius of 0 returns only those npcs that are on the
          * specific submap.
          */
 
-        std::vector<shared_ptr_fast<npc>> get_npcs_near( const tripoint &p, int radius );
+        std::vector<std::shared_ptr<npc>> get_npcs_near( const tripoint &p, int radius );
         /**
          * Get all (currently loaded!) npcs that have a companion
          * mission set.
          */
-        std::vector<shared_ptr_fast<npc>> get_companion_mission_npcs( int range = 100 );
+        std::vector<std::shared_ptr<npc>> get_companion_mission_npcs();
         /**
          * Uses overmap terrain coordinates, this also means radius is
          * in overmap terrain.
          * A radius of 0 returns all npcs that are on that specific
          * overmap terrain tile.
          */
-        std::vector<shared_ptr_fast<npc>> get_npcs_near_omt( const tripoint &p, int radius );
+        std::vector<std::shared_ptr<npc>> get_npcs_near_omt( const tripoint &p, int radius );
         /**
          * Same as @ref get_npcs_near(int,int,int,int) but uses
          * player position as center.
          */
-        std::vector<shared_ptr_fast<npc>> get_npcs_near_player( int radius );
+        std::vector<std::shared_ptr<npc>> get_npcs_near_player( int radius );
         /**
          * Find the npc with the given ID.
          * Returns NULL if the npc could not be found.
          * Searches all loaded overmaps.
          */
-        shared_ptr_fast<npc> find_npc( character_id id );
+        std::shared_ptr<npc> find_npc( int id );
         /**
          * Get all NPCs active on the overmap
          */
-        std::vector<shared_ptr_fast<npc>> get_overmap_npcs();
+        std::vector<std::shared_ptr<npc>> get_overmap_npcs();
         /**
          * Find npc by id and if found, erase it from the npc list
          * and return it ( or return nullptr if not found ).
          */
-        shared_ptr_fast<npc> remove_npc( const character_id &id );
+        std::shared_ptr<npc> remove_npc( int id );
         /**
          * Adds the npc to an overmap ( based on the npcs current location )
          * and stores it there. The overmap takes ownership of the pointer.
          */
-        void insert_npc( const shared_ptr_fast<npc> &who );
+        void insert_npc( const std::shared_ptr<npc> &who );
 
         /**
          * Find all places with the specific overmap terrain type.
@@ -308,8 +300,8 @@ class overmapbuffer
         bool reveal( const tripoint &center, int radius );
         bool reveal( const tripoint &center, int radius,
                      const std::function<bool( const oter_id & )> &filter );
-        std::vector<tripoint> get_npc_path( const tripoint &src, const tripoint &dest );
-        std::vector<tripoint> get_npc_path( const tripoint &src, const tripoint &dest, path_type &ptype );
+        std::vector<tripoint> get_npc_path( const tripoint &src, const tripoint &dest,
+                                            bool road_only = false );
         bool reveal_route( const tripoint &source, const tripoint &dest, int radius = 0,
                            bool road_only = false );
         /**
@@ -440,16 +432,16 @@ class overmapbuffer
          * Intended to be used when you have a special in hand, the desired location and rotation are known
          * and the special should be directly placed rather than using the overmap's placement algorithm.
          * @param special The overmap special to place.
-         * @param p The location to place the overmap special. Absolute overmap terrain coordinates.
+         * @param location The location to place the overmap special. Absolute overmap terrain coordinates.
          * @param dir The direction to rotate the overmap special before placement.
          * @param must_be_unexplored If true, will require that all of the terrains where the special would be
          * placed are unexplored.
          * @param force If true, placement will bypass the checks for valid placement.
          * @returns True if the special was placed, else false.
          */
-        bool place_special( const overmap_special &special, const tripoint &p,
+        bool place_special( const overmap_special &special, const tripoint &location,
                             om_direction::type dir,
-                            bool must_be_unexplored, bool force );
+                            const bool must_be_unexplored, const bool force );
         /**
          * Place the specified overmap special using the overmap's placement algorithm. Intended to be used
          * when you have a special that you want placed but it should be placed similarly to as if it were
@@ -500,7 +492,7 @@ class overmapbuffer
          * overmap terrain coordinates.
          * This function may create a new overmap if needed.
          */
-        bool check_ot( const std::string &otype, ot_match_type match_type, const tripoint &p );
+        bool check_ot( const std::string &otype, ot_match_type match_type, const tripoint &loc );
         bool check_overmap_special_type( const overmap_special_id &id, const tripoint &loc );
 
         /**
@@ -524,10 +516,10 @@ class overmapbuffer
          * The location is in absolute submap coordinates, the radius is in the same system.
          * The overmaps are returned sorted by distance from the provided location (closest first).
          */
-        std::vector<overmap *> get_overmaps_near( const point &p, int radius );
+        std::vector<overmap *> get_overmaps_near( const point &location, int radius );
         std::vector<overmap *> get_overmaps_near( const tripoint &location, int radius );
 };
 
 extern overmapbuffer overmap_buffer;
 
-#endif // CATA_SRC_OVERMAPBUFFER_H
+#endif

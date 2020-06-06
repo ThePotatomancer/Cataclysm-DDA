@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_SIMPLE_PATHFINDING_H
-#define CATA_SRC_SIMPLE_PATHFINDING_H
+#ifndef SIMPLE_PATHFINDINDING_H
+#define SIMPLE_PATHFINDINDING_H
 
 #include <limits>
 #include <queue>
@@ -50,8 +50,10 @@ path find_path( const point &source,
                 const int max_y,
                 BinaryPredicate estimator )
 {
+    static constexpr point d[4] = { point( 0, -1 ), point( 1, 0 ), point( 0, 1 ), point( -1, 0 ) };
+
     const auto inbounds = [ max_x, max_y ]( const point & p ) {
-        return p.x >= 0 && p.x < max_x && p.y >= 0 && p.y < max_y;
+        return p.x >= 0 && p.x < max_x && p.y >= 0 && p.y <= max_y;
     };
 
     const auto map_index = [ max_x ]( const point & p ) {
@@ -103,7 +105,7 @@ path find_path( const point &source,
                 const int n = map_index( p );
                 const int dir = dirs[n];
                 res.nodes.emplace_back( p, dir );
-                p += four_adjacent_offsets[dir];
+                p += d[dir];
             }
 
             res.nodes.emplace_back( p, -1 );
@@ -112,12 +114,12 @@ path find_path( const point &source,
         }
 
         for( int dir = 0; dir < 4; dir++ ) {
-            const point p = mn.pos + four_adjacent_offsets[dir];
+            const point p = mn.pos + d[dir];
             const int n = map_index( p );
             // don't allow:
             // * out of bounds
             // * already traversed tiles
-            if( !inbounds( p ) || closed[n] ) {
+            if( p.x < 1 || p.x + 1 >= max_x || p.y < 1 || p.y + 1 >= max_y || closed[n] ) {
                 continue;
             }
 
@@ -160,6 +162,8 @@ inline path straight_path( const point &source,
                            int dir,
                            size_t len )
 {
+    static constexpr point d[4] = { point( 0, -1 ), point( 1, 0 ), point( 0, 1 ), point( -1, 0 ) };
+
     path res;
 
     if( len == 0 ) {
@@ -173,7 +177,7 @@ inline path straight_path( const point &source,
     for( size_t i = 0; i + 1 < len; ++i ) {
         res.nodes.emplace_back( p, dir );
 
-        p += four_adjacent_offsets[dir];
+        p += d[dir];
     }
 
     res.nodes.emplace_back( p, -1 );
@@ -183,4 +187,4 @@ inline path straight_path( const point &source,
 
 } // namespace pf
 
-#endif // CATA_SRC_SIMPLE_PATHFINDING_H
+#endif

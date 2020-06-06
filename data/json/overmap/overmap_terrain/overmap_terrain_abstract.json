@@ -162,6 +162,7 @@
     "land_use_code": "cemetery",
     "sym": "n",
     "color": "white",
+    "extras": "field",
     "see_cost": 5,
     "mondensity": 2
   },

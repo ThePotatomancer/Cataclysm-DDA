@@ -1,13 +1,13 @@
 #pragma once
-#ifndef CATA_SRC_VEHICLE_GROUP_H
-#define CATA_SRC_VEHICLE_GROUP_H
+#ifndef VEHICLE_GROUP_H
+#define VEHICLE_GROUP_H
 
-#include <string>
+#include <memory>
 #include <unordered_map>
+#include <string>
 #include <vector>
 
 #include "mapgen.h"
-#include "memory_fast.h"
 #include "optional.h"
 #include "rng.h"
 #include "string_id.h"
@@ -15,9 +15,9 @@
 #include "weighted_list.h"
 
 class JsonObject;
-class VehicleGroup;
-class VehicleSpawn;
 class map;
+class VehicleSpawn;
+class VehicleGroup;
 
 using vspawn_id = string_id<VehicleSpawn>;
 struct point;
@@ -31,7 +31,7 @@ extern std::unordered_map<vgroup_id, VehicleGroup> vgroups;
 class VehicleGroup
 {
     public:
-        VehicleGroup() = default;
+        VehicleGroup() {}
 
         void add_vehicle( const vproto_id &type, const int &probability ) {
             vehicles.add( type, probability );
@@ -41,8 +41,7 @@ class VehicleGroup
             return *vehicles.pick();
         }
 
-        static void load( const JsonObject &jo );
-        static void reset();
+        static void load( JsonObject &jo );
 
     private:
         weighted_int_list<vproto_id> vehicles;
@@ -52,7 +51,7 @@ class VehicleGroup
  * The location and facing data needed to place a vehicle onto the map.
  */
 struct VehicleFacings {
-    VehicleFacings( const JsonObject &jo, const std::string &key );
+    VehicleFacings( JsonObject &jo, const std::string &key );
 
     int pick() const {
         return random_entry( values );
@@ -80,15 +79,14 @@ struct VehicleLocation {
  * A list of vehicle locations which are valid for spawning new vehicles.
  */
 struct VehiclePlacement {
-    VehiclePlacement() = default;
+    VehiclePlacement() {}
 
     void add( const jmapgen_int &x, const jmapgen_int &y, const VehicleFacings &facings ) {
         locations.emplace_back( x, y, facings );
     }
 
     const VehicleLocation *pick() const;
-    static void load( const JsonObject &jo );
-    static void reset();
+    static void load( JsonObject &jo );
 
     using LocationMap = std::vector<VehicleLocation>;
     LocationMap locations;
@@ -131,7 +129,7 @@ class VehicleFunction_builtin : public VehicleFunction
 class VehicleFunction_json : public VehicleFunction
 {
     public:
-        VehicleFunction_json( const JsonObject &jo );
+        VehicleFunction_json( JsonObject &jo );
         ~VehicleFunction_json() override = default;
 
         /**
@@ -158,9 +156,9 @@ class VehicleFunction_json : public VehicleFunction
 class VehicleSpawn
 {
     public:
-        VehicleSpawn() = default;
+        VehicleSpawn() {}
 
-        void add( const double &weight, const shared_ptr_fast<VehicleFunction> &func ) {
+        void add( const double &weight, const std::shared_ptr<VehicleFunction> &func ) {
             types.add( func, weight );
         }
 
@@ -179,14 +177,13 @@ class VehicleSpawn
          */
         static void apply( const vspawn_id &id, map &m, const std::string &terrain_name );
 
-        static void load( const JsonObject &jo );
-        static void reset();
+        static void load( JsonObject &jo );
 
     private:
-        weighted_float_list<shared_ptr_fast<VehicleFunction>> types;
+        weighted_float_list<std::shared_ptr<VehicleFunction>> types;
 
         using FunctionMap = std::unordered_map<std::string, vehicle_gen_pointer>;
         static FunctionMap builtin_functions;
 };
 
-#endif // CATA_SRC_VEHICLE_GROUP_H
+#endif

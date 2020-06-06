@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_WEIGHTED_LIST_H
-#define CATA_SRC_WEIGHTED_LIST_H
+#ifndef WEIGHTED_LIST_H
+#define WEIGHTED_LIST_H
 
 #include "rng.h"
 
@@ -185,8 +185,7 @@ template <typename T> struct weighted_int_list : public weighted_list<int, T> {
         // populate the precalc_array for O(1) lookups
         void precalc() {
             precalc_array.clear();
-            // to avoid additional reallocations
-            precalc_array.reserve( this->total_weight );
+            precalc_array.reserve( this->total_weight ); // to avoid additional reallocations
             // weights [3,1,5] will produce vector of indices [0,0,0,1,2,2,2,2,2]
             for( size_t i = 0; i < this->objects.size(); i++ ) {
                 precalc_array.resize( precalc_array.size() + this->objects[i].weight, i );
@@ -245,4 +244,4 @@ template <typename T> struct weighted_float_list : public weighted_list<double, 
 
 };
 
-#endif // CATA_SRC_WEIGHTED_LIST_H
+#endif

@@ -1,14 +1,15 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """Run this script with -h for usage info and docs.
 """
 
 from __future__ import print_function
 
 import sys
+import os
 import json
 import argparse
 from util import import_data, key_counter, ui_counts_to_columns,\
-        WhereAction
+        matches_all_wheres, CDDAJSONWriter, WhereAction
 
 parser = argparse.ArgumentParser(description="""Count the number of times a specific key occurs.
 
@@ -40,7 +41,7 @@ if __name__ == "__main__":
         # If we start getting unexpected JSON or other things, might need to
         # revisit quitting on load_errors
         print("Error loading JSON data.")
-        for e in load_errors:
+        for e in load_errrors:
             print(e)
         sys.exit(1)
     elif not json_data:

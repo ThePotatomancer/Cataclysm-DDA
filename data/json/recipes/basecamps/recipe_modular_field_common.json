@@ -20,8 +20,7 @@
       { "id": "logging" }
     ],
     "blueprint_requires": [ { "id": "not_an_upgrade" } ],
-    "blueprint_name": "basic survey",
-    "check_blueprint_needs": false
+    "blueprint_name": "basic survey"
   },
   {
     "type": "recipe",
@@ -45,8 +44,7 @@
       { "id": "fbm_no_dig" }
     ],
     "blueprint_requires": [ { "id": "not_an_upgrade" } ],
-    "blueprint_name": "basic survey",
-    "check_blueprint_needs": false
+    "blueprint_name": "basic survey"
   },
   {
     "type": "recipe",
@@ -61,15 +59,7 @@
     "blueprint_requires": [ { "id": "fbmh_northeast" } ],
     "blueprint_provides": [ { "id": "fbmh_fire_northeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_fire_northeast" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 2 ], [ "survival", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "DIG", "level": 2 } ], [ { "id": "HAMMER", "level": 2 } ] ],
-        "components": [ [ [ "rock", 40 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -102,11 +92,7 @@
     "blueprint_requires": [ { "id": "fbmh_northeast" } ],
     "blueprint_provides": [ { "id": "fbmh_fire_northeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_fire_northeast" } ],
-    "blueprint_needs": {
-      "time": "1 h",
-      "skills": [ [ "fabrication", 5 ], [ "mechanics", 3 ] ],
-      "inline": { "tools": [  ], "qualities": [ [ { "id": "SAW_M" } ] ], "components": [ [ [ "metal_tank", 1 ] ], [ [ "pipe", 1 ] ] ] }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -121,15 +107,7 @@
     "blueprint_requires": [ { "id": "fbmh_northeast" } ],
     "blueprint_provides": [ { "id": "bed" }, { "id": "fbmh_bed1_northeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_northeast" } ],
-    "blueprint_needs": {
-      "time": "1 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 8 ], [ "stick", 8 ] ], [ [ "straw_pile", 16 ], [ "withered", 16 ], [ "pine_bough", 16 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -144,20 +122,7 @@
     "blueprint_requires": [ { "id": "fbmh_northeast" } ],
     "blueprint_provides": [ { "id": "bed" }, { "id": "fbmh_bed1_northeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_northeast" } ],
-    "blueprint_needs": {
-      "time": "3 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 30 ] ],
-          [ [ "wood_sheet", 1 ], [ "wood_panel", 2 ] ],
-          [ [ "nail", 36 ] ],
-          [ [ "mattress", 2 ], [ "down_mattress", 2 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -172,15 +137,7 @@
     "blueprint_requires": [ { "id": "fbmh_bed1_northeast" }, { "id": "fbmh_northeast", "amount": 2 } ],
     "blueprint_provides": [ { "id": "bed" }, { "id": "fbmh_bed2_northeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed2_northeast" } ],
-    "blueprint_needs": {
-      "time": "1 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 8 ], [ "stick", 8 ] ], [ [ "straw_pile", 16 ], [ "withered", 16 ], [ "pine_bough", 16 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -195,20 +152,7 @@
     "blueprint_requires": [ { "id": "fbmh_bed1_northeast" }, { "id": "fbmh_northeast", "amount": 2 } ],
     "blueprint_provides": [ { "id": "bed" }, { "id": "fbmh_bed2_northeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed2_northeast" } ],
-    "blueprint_needs": {
-      "time": "3 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 30 ] ],
-          [ [ "wood_sheet", 1 ], [ "wood_panel", 2 ] ],
-          [ [ "nail", 36 ] ],
-          [ [ "mattress", 2 ], [ "down_mattress", 2 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -223,15 +167,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_east" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -246,20 +182,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_east" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -274,15 +197,7 @@
     "blueprint_requires": [ { "id": "fbmh_east", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" }, { "id": "fbmh_tent_east" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -297,20 +212,7 @@
     "blueprint_requires": [ { "id": "fbmh_east", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_east" }, { "id": "fbmh_bed2_east" }, { "id": "fbmh_tent_east" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -325,15 +227,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_southeast" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -348,20 +242,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_southeast" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -376,15 +257,7 @@
     "blueprint_requires": [ { "id": "fbmh_southeast", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" }, { "id": "fbmh_tent_southeast" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -399,20 +272,7 @@
     "blueprint_requires": [ { "id": "fbmh_southeast", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southeast" }, { "id": "fbmh_bed2_southeast" }, { "id": "fbmh_tent_southeast" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -427,15 +287,7 @@
     "blueprint_requires": [ { "id": "fbmh_northwest", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_northwest" }, { "id": "fbmh_bed2_northwest" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_northwest" }, { "id": "fbmh_bed2_northwest" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -450,20 +302,7 @@
     "blueprint_requires": [ { "id": "fbmh_northwest", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_northwest" }, { "id": "fbmh_bed2_northwest" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_northwest" }, { "id": "fbmh_bed2_northwest" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -478,15 +317,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_west" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -501,20 +332,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_west" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -529,15 +347,7 @@
     "blueprint_requires": [ { "id": "fbmh_west", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" }, { "id": "fbmh_tent_west" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -552,20 +362,7 @@
     "blueprint_requires": [ { "id": "fbmh_west", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_west" }, { "id": "fbmh_bed2_west" }, { "id": "fbmh_tent_west" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -580,15 +377,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_southwest" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -603,20 +392,7 @@
     "blueprint_requires": [ { "id": "fbmh_tent_southwest" } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -631,15 +407,7 @@
     "blueprint_requires": [ { "id": "fbmh_southwest", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" }, { "id": "fbmh_tent_southwest" } ],
-    "blueprint_needs": {
-      "time": "2 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [  ],
-        "components": [ [ [ "2x4", 16 ], [ "stick", 16 ] ], [ [ "straw_pile", 32 ], [ "withered", 32 ], [ "pine_bough", 32 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -654,20 +422,7 @@
     "blueprint_requires": [ { "id": "fbmh_southwest", "amount": 4 } ],
     "blueprint_provides": [ { "id": "bed", "amount": 2 }, { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" } ],
     "blueprint_excludes": [ { "id": "fbmh_bed1_southwest" }, { "id": "fbmh_bed2_southwest" }, { "id": "fbmh_tent_southwest" } ],
-    "blueprint_needs": {
-      "time": "6 h",
-      "skills": [ [ "fabrication", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 60 ] ],
-          [ [ "wood_sheet", 2 ], [ "wood_panel", 4 ] ],
-          [ [ "nail", 72 ] ],
-          [ [ "mattress", 4 ], [ "down_mattress", 4 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -682,15 +437,7 @@
     "blueprint_requires": [ { "id": "fbmh_center", "amount": 2 }, { "id": "fbmh_ne_center" } ],
     "blueprint_provides": [ { "id": "trapping" }, { "id": "hunting" }, { "id": "kitchen" }, { "id": "kitchen_recipes_1" } ],
     "blueprint_resources": [ "fake_fireplace", "pot" ],
-    "blueprint_needs": {
-      "time": "2 h 30 m",
-      "skills": [ [ "fabrication", 2 ], [ "survival", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "DIG", "level": 2 } ], [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [ [ [ "2x4", 2 ] ], [ [ "wood_sheet", 1 ], [ "wood_panel", 2 ] ], [ [ "nail", 8 ] ], [ [ "rock", 40 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -704,32 +451,7 @@
     "blueprint_name": "central butchery rack",
     "blueprint_requires": [ { "id": "fbmh_center", "amount": 2 }, { "id": "fbmh_ne_center" } ],
     "blueprint_provides": [ { "id": "trapping" }, { "id": "hunting" } ],
-    "blueprint_needs": {
-      "time": "45 m",
-      "skills": [ [ "fabrication", 1 ], [ "survival", 3 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "CUT" } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "stick_long", 6 ] ],
-          [
-            [ "rope_6", 1 ],
-            [ "vine_6", 1 ],
-            [ "rope_makeshift_6", 1 ],
-            [ "string_36", 2 ],
-            [ "cordage_36", 2 ],
-            [ "string_6", 12 ],
-            [ "cordage_6", 12 ],
-            [ "thread", 600 ],
-            [ "sinew", 600 ],
-            [ "plant_fibre", 600 ],
-            [ "yarn", 600 ],
-            [ "wire", 8 ]
-          ],
-          [ [ "pointy_stick", 2 ], [ "spike", 2 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -743,15 +465,7 @@
     "blueprint_name": "central tool rack",
     "blueprint_requires": [ { "id": "fbmh_center", "amount": 2 }, { "id": "fbmh_nw_center" } ],
     "blueprint_provides": [ { "id": "tool_storage" } ],
-    "blueprint_needs": {
-      "time": "1 h",
-      "skills": [ [ "fabrication", 1 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [ [ [ "2x4", 6 ] ], [ [ "wood_sheet", 1 ], [ "wood_panel", 2 ] ], [ [ "nail", 16 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -765,15 +479,7 @@
     "blueprint_name": "central dining hall",
     "blueprint_requires": [ { "id": "fbmh_center", "amount": 4 }, { "id": "fbmh_ne_center" }, { "id": "fbmh_nw_center" } ],
     "blueprint_provides": [ { "id": "relaying" }, { "id": "walls" }, { "id": "recruiting" }, { "id": "scouting" }, { "id": "patrolling" } ],
-    "blueprint_needs": {
-      "time": "3 h",
-      "skills": [ [ "fabrication", 2 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [ [ [ "2x4", 24 ] ], [ [ "wood_sheet", 2 ], [ "wood_panel", 2 ] ], [ [ "nail", 48 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -788,15 +494,7 @@
     "blueprint_name": "south dining hall",
     "blueprint_requires": [ { "id": "fbmh_south", "amount": 4 }, { "id": "fbmh_se_south" }, { "id": "fbmh_sw_south" } ],
     "blueprint_provides": [ { "id": "relaying" }, { "id": "walls" }, { "id": "recruiting" }, { "id": "scouting" }, { "id": "patrolling" } ],
-    "blueprint_needs": {
-      "time": "3 h",
-      "skills": [ [ "fabrication", 2 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_W" } ] ],
-        "components": [ [ [ "2x4", 24 ] ], [ [ "wood_sheet", 2 ], [ "wood_panel", 2 ] ], [ [ "nail", 48 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -811,21 +509,7 @@
     "blueprint_resources": [ "fake_stove" ],
     "blueprint_requires": [ { "id": "fbmh_south", "amount": 2 }, { "id": "fbmh_sw_south" } ],
     "blueprint_provides": [ { "id": "trapping" }, { "id": "hunting" }, { "id": "kitchen" }, { "id": "kitchen_recipes_1" } ],
-    "blueprint_needs": {
-      "time": "1 h 30 m",
-      "skills": [ [ "fabrication", 5 ], [ "mechanics", 3 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "HAMMER", "level": 2 } ], [ { "id": "SAW_M" } ], [ { "id": "SAW_W" } ] ],
-        "components": [
-          [ [ "2x4", 2 ] ],
-          [ [ "wood_sheet", 1 ], [ "wood_panel", 2 ] ],
-          [ [ "nail", 8 ] ],
-          [ [ "metal_tank", 1 ] ],
-          [ [ "pipe", 1 ] ]
-        ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -837,17 +521,8 @@
     "never_learn": true,
     "construction_blueprint": "fbmh_well_north",
     "blueprint_name": "north water well",
-    "blueprint_provides": [ { "id": "water_well" } ],
     "blueprint_requires": [ { "id": "fbmh_northeast", "amount": 4 }, { "id": "fbmh_fire_northeast" }, { "id": "fbmh_bed2_northeast" } ],
-    "blueprint_needs": {
-      "time": "11 h",
-      "skills": [ [ "fabrication", 4 ], [ "mechanics", 2 ], [ "survival", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "DIG", "level": 2 } ], [ { "id": "HAMMER", "level": 2 } ], [ { "id": "WRENCH" } ] ],
-        "components": [ [ [ "rock", 40 ] ], [ [ "2x4", 4 ] ], [ [ "nail", 8 ] ], [ [ "well_pump", 1 ] ], [ [ "pipe", 6 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -861,15 +536,7 @@
     "blueprint_name": "north root cellar",
     "blueprint_provides": [ { "id": "pantry" } ],
     "blueprint_requires": [ { "id": "fbmh_northeast", "amount": 4 }, { "id": "fbmh_fire_northeast" }, { "id": "fbmh_bed2_northeast" } ],
-    "blueprint_needs": {
-      "time": "4 h 40 m",
-      "skills": [ [ "fabrication", 4 ], [ "survival", 4 ] ],
-      "inline": {
-        "tools": [  ],
-        "qualities": [ [ { "id": "DIG", "level": 2 } ], [ { "id": "HAMMER", "level": 2 } ] ],
-        "components": [ [ [ "rock", 40 ], [ "brick", 40 ] ], [ [ "2x4", 6 ], [ "stick", 6 ] ], [ [ "withered", 12 ], [ "straw_pile", 12 ] ] ]
-      }
-    }
+    "blueprint_autocalc": true
   },
   {
     "type": "recipe",
@@ -899,13 +566,13 @@
         [ "solar_panel", 4 ],
         [ "reinforced_solar_panel", 4 ],
         [ "solar_panel_v2", 2 ],
-        [ "reinforced_solar_panel_v2", 2 ]
+        [ "reinforced_solar_panel_v2", 2 ],
+        [ "solar_panel_v3", 1 ]
       ],
       [ [ "storage_battery", 1 ], [ "medium_storage_battery", 4 ], [ "small_storage_battery", 32 ] ],
       [ [ "sheet_metal", 2 ], [ "wire", 8 ] ],
       [ [ "pipe", 24 ] ]
-    ],
-    "check_blueprint_needs": false
+    ]
   },
   {
     "type": "recipe",
@@ -926,7 +593,7 @@
     "components": [
       [ [ "processor", 2 ] ],
       [ [ "RAM", 2 ] ],
-      [ [ "large_lcd_screen", 1 ] ],
+      [ [ "small_lcd_screen", 1 ] ],
       [ [ "e_scrap", 8 ] ],
       [ [ "frame", 1 ] ],
       [ [ "circuit", 4 ] ],
@@ -934,8 +601,7 @@
       [ [ "amplifier", 2 ] ],
       [ [ "cable", 80 ] ],
       [ [ "motor_small", 1 ], [ "motor_tiny", 2 ] ]
-    ],
-    "check_blueprint_needs": false
+    ]
   },
   {
     "type": "recipe",

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_VEHICLE_SELECTOR_H
-#define CATA_SRC_VEHICLE_SELECTOR_H
+#ifndef VEHICLE_SELECTOR_H
+#define VEHICLE_SELECTOR_H
 
 #include <vector>
 #include <iosfwd>
@@ -92,4 +92,4 @@ class vehicle_selector : public visitable<vehicle_selector>
         std::vector<value_type> data;
 };
 
-#endif // CATA_SRC_VEHICLE_SELECTOR_H
+#endif

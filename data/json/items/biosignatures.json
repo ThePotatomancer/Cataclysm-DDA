@@ -2,9 +2,9 @@
   {
     "type": "COMESTIBLE",
     "id": "feces_bird",
-    "name": { "str_sp": "bird litter" },
+    "name": "bird litter",
     "category": "chems",
-    "weight": "40 g",
+    "weight": 40,
     "color": "brown",
     "spoils_in": "4 days 16 hours",
     "comestible_type": "FOOD",
@@ -14,9 +14,8 @@
     "calories": 26,
     "description": "Bird dropping, feathers, and soiled bits of rubbish.",
     "price": 0,
-    "price_postapoc": 0,
     "material": "feces",
-    "volume": "250 ml",
+    "volume": 1,
     "charges": 4,
     "stack_size": 4,
     "fun": -25
@@ -26,8 +25,8 @@
     "id": "feces_cow",
     "name": "cow pie",
     "copy-from": "feces_bird",
-    "weight": "750 g",
-    "volume": "1 L",
+    "weight": 750,
+    "volume": 4,
     "description": "A fresh cow pie, could probably be used to make some great fertilizer."
   },
   {
@@ -42,8 +41,8 @@
     "id": "feces_manure",
     "name": "manure",
     "copy-from": "feces_bird",
-    "weight": "250 g",
-    "volume": "500 ml",
+    "weight": 250,
+    "volume": 2,
     "description": "Common manure, could probably be used to make some great fertilizer."
   },
   {
@@ -52,23 +51,5 @@
     "name": "roach dirt",
     "copy-from": "feces_bird",
     "description": "Large black pellets of rotting material."
-  },
-  {
-    "type": "GENERIC",
-    "id": "fetid_goop",
-    "symbol": "~",
-    "color": "white",
-    "name": { "str": "fetid goop" },
-    "weight": "750 g",
-    "volume": "1 L",
-    "description": "A foul smelling goop.  It has a disgusting texture and a powerful smell that overrides every other smell around it.",
-    "use_action": {
-      "type": "change_scent",
-      "scent_typeid": "sc_fetid",
-      "moves": 200,
-      "duration": "1 h",
-      "charges_to_use": 1,
-      "effects": [ { "id": "fetid_goop", "duration": 3600 } ]
-    }
   }
 ]

@@ -1,29 +1,15 @@
 #pragma once
-#ifndef CATA_SRC_FAULT_H
-#define CATA_SRC_FAULT_H
+#ifndef FAULT_H
+#define FAULT_H
 
 #include <map>
-#include <set>
 #include <string>
 
-#include "calendar.h"
-#include "optional.h"
-#include "translations.h"
+#include "string_id.h"
 #include "type_id.h"
 
 class JsonObject;
-
-struct mending_method {
-    std::string id;
-    translation name;
-    translation description;
-    translation success_msg;
-    time_duration time;
-    std::map<skill_id, int> skills;
-    requirement_id requirements;
-    cata::optional<fault_id> turns_into;
-    cata::optional<fault_id> also_mends;
-};
+struct requirement_data;
 
 class fault
 {
@@ -38,32 +24,28 @@ class fault
             return id_ == fault_id( "null" );
         }
 
-        std::string name() const {
-            return name_.translated();
+        const std::string &name() const {
+            return name_;
         }
 
-        std::string description() const {
-            return description_.translated();
+        const std::string &description() const {
+            return description_;
         }
 
-        const std::map<std::string, mending_method> &mending_methods() const {
-            return mending_methods_;
+        int time() const {
+            return time_;
         }
 
-        const mending_method *find_mending_method( const std::string &id ) const {
-            if( mending_methods_.find( id ) != mending_methods_.end() ) {
-                return &mending_methods_.at( id );
-            } else {
-                return nullptr;
-            }
+        const std::map<skill_id, int> &skills() const {
+            return skills_;
         }
 
-        bool has_flag( const std::string &flag ) const {
-            return flags.count( flag );
+        const requirement_data &requirements() const {
+            return requirements_.obj();
         }
 
         /** Load fault from JSON definition */
-        static void load_fault( const JsonObject &jo );
+        static void load_fault( JsonObject &jo );
 
         /** Get all currently loaded faults */
         static const std::map<fault_id, fault> &all();
@@ -76,10 +58,11 @@ class fault
 
     private:
         fault_id id_;
-        translation name_;
-        translation description_;
-        std::map<std::string, mending_method> mending_methods_;
-        std::set<std::string> flags;
+        std::string name_;
+        std::string description_;
+        int time_;
+        std::map<skill_id, int> skills_;
+        requirement_id requirements_;
 };
 
-#endif // CATA_SRC_FAULT_H
+#endif

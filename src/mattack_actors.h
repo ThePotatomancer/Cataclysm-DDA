@@ -1,26 +1,24 @@
 #pragma once
-#ifndef CATA_SRC_MATTACK_ACTORS_H
-#define CATA_SRC_MATTACK_ACTORS_H
+#ifndef MATTACK_ACTORS_H
+#define MATTACK_ACTORS_H
 
 #include <climits>
 #include <map>
-#include <memory>
+#include <vector>
 #include <string>
 #include <utility>
-#include <vector>
 
-#include "bodypart.h"
 #include "damage.h"
-#include "magic.h"
 #include "mattack_common.h"
+#include "magic.h"
 #include "mtype.h"
-#include "translations.h"
 #include "type_id.h"
 #include "weighted_list.h"
+#include "bodypart.h"
 
-class Creature;
 class JsonObject;
 class monster;
+class Creature;
 
 class leap_actor : public mattack_actor
 {
@@ -36,12 +34,12 @@ class leap_actor : public mattack_actor
         // Don't jump if distance to target is more than this
         float max_consider_range;
 
-        leap_actor() = default;
+        leap_actor() { }
         ~leap_actor() override = default;
 
-        void load_internal( const JsonObject &obj, const std::string &src ) override;
+        void load_internal( JsonObject &jo, const std::string &src ) override;
         bool call( monster & ) const override;
-        std::unique_ptr<mattack_actor> clone() const override;
+        mattack_actor *clone() const override;
 };
 
 class mon_spellcasting_actor : public mattack_actor
@@ -52,12 +50,12 @@ class mon_spellcasting_actor : public mattack_actor
         spell spell_data;
         int move_cost;
 
-        mon_spellcasting_actor() = default;
+        mon_spellcasting_actor() {}
         ~mon_spellcasting_actor() override = default;
 
-        void load_internal( const JsonObject &obj, const std::string &src ) override;
+        void load_internal( JsonObject &jo, const std::string &src ) override;
         bool call( monster & ) const override;
-        std::unique_ptr<mattack_actor> clone() const override;
+        mattack_actor *clone() const override;
 };
 
 class melee_actor : public mattack_actor
@@ -86,18 +84,18 @@ class melee_actor : public mattack_actor
         std::vector<mon_effect_data> effects;
 
         /** Message for missed attack against the player. */
-        translation miss_msg_u;
+        std::string miss_msg_u;
         /** Message for 0 damage hit against the player. */
-        translation no_dmg_msg_u;
+        std::string no_dmg_msg_u;
         /** Message for damaging hit against the player. */
-        translation hit_dmg_u;
+        std::string hit_dmg_u;
 
         /** Message for missed attack against a non-player. */
-        translation miss_msg_npc;
+        std::string miss_msg_npc;
         /** Message for 0 damage hit against a non-player. */
-        translation no_dmg_msg_npc;
+        std::string no_dmg_msg_npc;
         /** Message for damaging hit against a non-player. */
-        translation hit_dmg_npc;
+        std::string hit_dmg_npc;
 
         melee_actor();
         ~melee_actor() override = default;
@@ -105,16 +103,16 @@ class melee_actor : public mattack_actor
         virtual Creature *find_target( monster &z ) const;
         virtual void on_damage( monster &z, Creature &target, dealt_damage_instance &dealt ) const;
 
-        void load_internal( const JsonObject &obj, const std::string &src ) override;
+        void load_internal( JsonObject &jo, const std::string &src ) override;
         bool call( monster & ) const override;
-        std::unique_ptr<mattack_actor> clone() const override;
+        mattack_actor *clone() const override;
 };
 
 class bite_actor : public melee_actor
 {
     public:
         // one_in( this - damage dealt ) chance of getting infected
-        // i.e. the higher is this, the lower chance of infection
+        // ie. the higher is this, the lower chance of infection
         int no_infection_chance;
 
         bite_actor();
@@ -122,8 +120,8 @@ class bite_actor : public melee_actor
 
         void on_damage( monster &z, Creature &target, dealt_damage_instance &dealt ) const override;
 
-        void load_internal( const JsonObject &obj, const std::string &src ) override;
-        std::unique_ptr<mattack_actor> clone() const override;
+        void load_internal( JsonObject &jo, const std::string &src ) override;
+        mattack_actor *clone() const override;
 };
 
 class gun_actor : public mattack_actor
@@ -133,7 +131,7 @@ class gun_actor : public mattack_actor
         itype_id gun_type;
 
         /** Specific ammo type to use or for gun default if unspecified */
-        itype_id ammo_type = itype_id::NULL_ID();
+        itype_id ammo_type = "null";
 
         /*@{*/
         /** Balanced against player. If fake_skills unspecified defaults to GUN 4, WEAPON 8 */
@@ -147,7 +145,7 @@ class gun_actor : public mattack_actor
         /** Specify weapon mode to use at different engagement distances */
         std::map<std::pair<int, int>, gun_mode_id> ranges;
 
-        int max_ammo = INT_MAX; /** limited also by monster starting ammo */
+        int max_ammo = INT_MAX; /** limited also by monster starting_ammo */
 
         /** Description of the attack being run */
         std::string description;
@@ -155,7 +153,7 @@ class gun_actor : public mattack_actor
         /** Message to display (if any) for failures to fire excluding lack of ammo */
         std::string failure_msg;
 
-        /** Sound (if any) when either ammo depleted or max_ammo reached */
+        /** Sound (if any) when either starting_ammo depleted or max_ammo reached */
         std::string no_ammo_sound;
 
         /** Number of moves required for each attack */
@@ -187,9 +185,9 @@ class gun_actor : public mattack_actor
         gun_actor();
         ~gun_actor() override = default;
 
-        void load_internal( const JsonObject &obj, const std::string &src ) override;
+        void load_internal( JsonObject &jo, const std::string &src ) override;
         bool call( monster & ) const override;
-        std::unique_ptr<mattack_actor> clone() const override;
+        mattack_actor *clone() const override;
 };
 
-#endif // CATA_SRC_MATTACK_ACTORS_H
+#endif

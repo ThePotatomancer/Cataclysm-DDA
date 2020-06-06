@@ -1,8 +1,8 @@
 [
   {
     "type": "start_location",
-    "id": "sloc_scavenger_bunker",
+    "ident": "s_bunker_shop_g",
     "name": "Scavenger Bunker",
-    "terrain": [ "s_bunker_shop_g" ]
+    "target": "s_bunker_shop_g"
   }
 ]

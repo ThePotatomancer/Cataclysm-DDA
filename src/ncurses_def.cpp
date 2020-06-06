@@ -13,15 +13,15 @@
 #include <curses.h>
 #endif
 
-#include <langinfo.h>
 #include <stdexcept>
 
 #include "cursesdef.h"
 #include "catacharset.h"
 #include "color.h"
 #include "game_ui.h"
-#include "output.h"
-#include "ui_manager.h"
+
+extern int VIEW_OFFSET_X; // X position of terrain window
+extern int VIEW_OFFSET_Y; // Y position of terrain window
 
 static void curses_check_result( const int result, const int expected, const char *const /*name*/ )
 {
@@ -30,10 +30,10 @@ static void curses_check_result( const int result, const int expected, const cha
     }
 }
 
-catacurses::window catacurses::newwin( const int nlines, const int ncols, const point &begin )
+catacurses::window catacurses::newwin( const int nlines, const int ncols, const int begin_y,
+                                       const int begin_x )
 {
-    // TODO: check for errors
-    const auto w = ::newwin( nlines, ncols, begin.y, begin.x );
+    const auto w = ::newwin( nlines, ncols, begin_y, begin_x ); // TODO: check for errors
     return std::shared_ptr<void>( w, []( void *const w ) {
         ::curses_check_result( ::delwin( static_cast<::WINDOW *>( w ) ), OK, "delwin" );
     } );
@@ -89,14 +89,14 @@ void catacurses::wattron( const window &win, const nc_color &attrs )
     return curses_check_result( ::wattron( win.get<::WINDOW>(), attrs ), OK, "wattron" );
 }
 
-void catacurses::wmove( const window &win, const point &p )
+void catacurses::wmove( const window &win, const int y, const int x )
 {
-    return curses_check_result( ::wmove( win.get<::WINDOW>(), p.y, p.x ), OK, "wmove" );
+    return curses_check_result( ::wmove( win.get<::WINDOW>(), y, x ), OK, "wmove" );
 }
 
-void catacurses::mvwprintw( const window &win, const point &p, const std::string &text )
+void catacurses::mvwprintw( const window &win, const int y, const int x, const std::string &text )
 {
-    return curses_check_result( ::mvwprintw( win.get<::WINDOW>(), p.y, p.x, "%s", text.c_str() ),
+    return curses_check_result( ::mvwprintw( win.get<::WINDOW>(), y, x, "%s", text.c_str() ),
                                 OK, "mvwprintw" );
 }
 
@@ -133,21 +133,21 @@ void catacurses::wborder( const window &win, const chtype ls, const chtype rs, c
                                 "wborder" );
 }
 
-void catacurses::mvwhline( const window &win, const point &p, const chtype ch, const int n )
+void catacurses::mvwhline( const window &win, const int y, const int x, const chtype ch,
+                           const int n )
 {
-    return curses_check_result( ::mvwhline( win.get<::WINDOW>(), p.y, p.x, ch, n ), OK,
-                                "mvwhline" );
+    return curses_check_result( ::mvwhline( win.get<::WINDOW>(), y, x, ch, n ), OK, "mvwhline" );
 }
 
-void catacurses::mvwvline( const window &win, const point &p, const chtype ch, const int n )
+void catacurses::mvwvline( const window &win, const int y, const int x, const chtype ch,
+                           const int n )
 {
-    return curses_check_result( ::mvwvline( win.get<::WINDOW>(), p.y, p.x, ch, n ), OK,
-                                "mvwvline" );
+    return curses_check_result( ::mvwvline( win.get<::WINDOW>(), y, x, ch, n ), OK, "mvwvline" );
 }
 
-void catacurses::mvwaddch( const window &win, const point &p, const chtype ch )
+void catacurses::mvwaddch( const window &win, const int y, const int x, const chtype ch )
 {
-    return curses_check_result( ::mvwaddch( win.get<::WINDOW>(), p.y, p.x, ch ), OK, "mvwaddch" );
+    return curses_check_result( ::mvwaddch( win.get<::WINDOW>(), y, x, ch ), OK, "mvwaddch" );
 }
 
 void catacurses::waddch( const window &win, const chtype ch )
@@ -204,7 +204,6 @@ void catacurses::resizeterm()
     const int new_y = ::getmaxy( stdscr.get<::WINDOW>() );
     if( ::is_term_resized( new_x, new_y ) ) {
         game_ui::init_ui();
-        ui_manager::screen_resized();
     }
 }
 
@@ -219,7 +218,7 @@ void catacurses::init_interface()
     }
 #if !defined(__CYGWIN__)
     // ncurses mouse registration
-    mousemask( BUTTON1_CLICKED | BUTTON3_CLICKED | REPORT_MOUSE_POSITION, nullptr );
+    mousemask( BUTTON1_CLICKED | BUTTON3_CLICKED | REPORT_MOUSE_POSITION, NULL );
 #endif
     // our curses wrapper does not support changing this behavior, ncurses must
     // behave exactly like the wrapper, therefor:
@@ -227,103 +226,97 @@ void catacurses::init_interface()
     cbreak();  // C-style breaks (e.g. ^C to SIGINT)
     keypad( stdscr.get<::WINDOW>(), true ); // Numpad is numbers
     set_escdelay( 10 ); // Make Escape actually responsive
-    // TODO: error checking
-    start_color();
+    start_color(); // TODO: error checking
     init_colors();
 }
 
 input_event input_manager::get_input_event()
 {
-    int key = ERR;
-    input_event rval;
-    do {
-        previously_pressed_key = 0;
-        key = getch();
-        if( key != ERR ) {
-            int newch;
-            // Clear the buffer of characters that match the one we're going to act on.
-            const int prev_timeout = input_timeout;
-            set_timeout( 0 );
-            do {
-                newch = getch();
-            } while( newch != ERR && newch == key );
-            set_timeout( prev_timeout );
-            // If we read a different character than the one we're going to act on, re-queue it.
-            if( newch != ERR && newch != key ) {
-                ungetch( newch );
-            }
+    previously_pressed_key = 0;
+    const int key = getch();
+    if( key != ERR ) {
+        int newch;
+        // Clear the buffer of characters that match the one we're going to act on.
+        set_timeout( 0 );
+        do {
+            newch = getch();
+        } while( newch != ERR && newch == key );
+        reset_timeout();
+        // If we read a different character than the one we're going to act on, re-queue it.
+        if( newch != ERR && newch != key ) {
+            ungetch( newch );
         }
-        rval = input_event();
-        if( key == ERR ) {
-            if( input_timeout > 0 ) {
-                rval.type = input_event_t::timeout;
-            } else {
-                rval.type = input_event_t::error;
-            }
-            // ncurses mouse handling
-        } else if( key == KEY_RESIZE ) {
-            catacurses::resizeterm();
-        } else if( key == KEY_MOUSE ) {
-            MEVENT event;
-            if( getmouse( &event ) == OK ) {
-                rval.type = input_event_t::mouse;
-                rval.mouse_pos = point( event.x, event.y );
-                if( event.bstate & BUTTON1_CLICKED ) {
-                    rval.add_input( MOUSE_BUTTON_LEFT );
-                } else if( event.bstate & BUTTON3_CLICKED ) {
-                    rval.add_input( MOUSE_BUTTON_RIGHT );
-                } else if( event.bstate & REPORT_MOUSE_POSITION ) {
-                    rval.add_input( MOUSE_MOVE );
-                    if( input_timeout > 0 ) {
-                        // Mouse movement seems to clear ncurses timeout
-                        set_timeout( input_timeout );
-                    }
-                } else {
-                    rval.type = input_event_t::error;
+    }
+    input_event rval;
+    if( key == ERR ) {
+        if( input_timeout > 0 ) {
+            rval.type = CATA_INPUT_TIMEOUT;
+        } else {
+            rval.type = CATA_INPUT_ERROR;
+        }
+        // ncurses mouse handling
+    } else if( key == KEY_RESIZE ) {
+        catacurses::resizeterm();
+    } else if( key == KEY_MOUSE ) {
+        MEVENT event;
+        if( getmouse( &event ) == OK ) {
+            rval.type = CATA_INPUT_MOUSE;
+            rval.mouse_pos = point( event.x, event.y ) - point( VIEW_OFFSET_X, VIEW_OFFSET_Y );
+            if( event.bstate & BUTTON1_CLICKED ) {
+                rval.add_input( MOUSE_BUTTON_LEFT );
+            } else if( event.bstate & BUTTON3_CLICKED ) {
+                rval.add_input( MOUSE_BUTTON_RIGHT );
+            } else if( event.bstate & REPORT_MOUSE_POSITION ) {
+                rval.add_input( MOUSE_MOVE );
+                if( input_timeout > 0 ) {
+                    // Mouse movement seems to clear ncurses timeout
+                    set_timeout( input_timeout );
                 }
             } else {
-                rval.type = input_event_t::error;
+                rval.type = CATA_INPUT_ERROR;
             }
         } else {
-            if( key == 127 ) { // == Unicode DELETE
-                previously_pressed_key = KEY_BACKSPACE;
-                return input_event( KEY_BACKSPACE, input_event_t::keyboard );
-            }
-            rval.type = input_event_t::keyboard;
-            rval.text.append( 1, static_cast<char>( key ) );
-            // Read the UTF-8 sequence (if any)
-            if( key < 127 ) {
-                // Single byte sequence
-            } else if( 194 <= key && key <= 223 ) {
-                rval.text.append( 1, static_cast<char>( getch() ) );
-            } else if( 224 <= key && key <= 239 ) {
-                rval.text.append( 1, static_cast<char>( getch() ) );
-                rval.text.append( 1, static_cast<char>( getch() ) );
-            } else if( 240 <= key && key <= 244 ) {
-                rval.text.append( 1, static_cast<char>( getch() ) );
-                rval.text.append( 1, static_cast<char>( getch() ) );
-                rval.text.append( 1, static_cast<char>( getch() ) );
-            } else {
-                // Other control character, etc. - no text at all, return an event
-                // without the text property
-                previously_pressed_key = key;
-                return input_event( key, input_event_t::keyboard );
-            }
-            // Now we have loaded an UTF-8 sequence (possibly several bytes)
-            // but we should only return *one* key, so return the code point of it.
-            const uint32_t cp = UTF8_getch( rval.text );
-            if( cp == UNKNOWN_UNICODE ) {
-                // Invalid UTF-8 sequence, this should never happen, what now?
-                // Maybe return any error instead?
-                previously_pressed_key = key;
-                return input_event( key, input_event_t::keyboard );
-            }
-            previously_pressed_key = cp;
-            // for compatibility only add the first byte, not the code point
-            // as it would  conflict with the special keys defined by ncurses
-            rval.add_input( key );
+            rval.type = CATA_INPUT_ERROR;
         }
-    } while( key == KEY_RESIZE );
+    } else {
+        if( key == 127 ) { // == Unicode DELETE
+            previously_pressed_key = KEY_BACKSPACE;
+            return input_event( KEY_BACKSPACE, CATA_INPUT_KEYBOARD );
+        }
+        rval.type = CATA_INPUT_KEYBOARD;
+        rval.text.append( 1, static_cast<char>( key ) );
+        // Read the UTF-8 sequence (if any)
+        if( key < 127 ) {
+            // Single byte sequence
+        } else if( 194 <= key && key <= 223 ) {
+            rval.text.append( 1, static_cast<char>( getch() ) );
+        } else if( 224 <= key && key <= 239 ) {
+            rval.text.append( 1, static_cast<char>( getch() ) );
+            rval.text.append( 1, static_cast<char>( getch() ) );
+        } else if( 240 <= key && key <= 244 ) {
+            rval.text.append( 1, static_cast<char>( getch() ) );
+            rval.text.append( 1, static_cast<char>( getch() ) );
+            rval.text.append( 1, static_cast<char>( getch() ) );
+        } else {
+            // Other control character, etc. - no text at all, return an event
+            // without the text property
+            previously_pressed_key = key;
+            return input_event( key, CATA_INPUT_KEYBOARD );
+        }
+        // Now we have loaded an UTF-8 sequence (possibly several bytes)
+        // but we should only return *one* key, so return the code point of it.
+        const uint32_t cp = UTF8_getch( rval.text );
+        if( cp == UNKNOWN_UNICODE ) {
+            // Invalid UTF-8 sequence, this should never happen, what now?
+            // Maybe return any error instead?
+            previously_pressed_key = key;
+            return input_event( key, CATA_INPUT_KEYBOARD );
+        }
+        previously_pressed_key = cp;
+        // for compatibility only add the first byte, not the code point
+        // as it would  conflict with the special keys defined by ncurses
+        rval.add_input( key );
+    }
 
     return rval;
 }
@@ -331,7 +324,7 @@ input_event input_manager::get_input_event()
 void input_manager::set_timeout( const int delay )
 {
     timeout( delay );
-    // Use this to determine when curses should return a input_event_t::timeout event.
+    // Use this to determine when curses should return a CATA_INPUT_TIMEOUT event.
     input_timeout = delay;
 }
 
@@ -363,66 +356,6 @@ nc_color nc_color::blink() const
 bool nc_color::is_blink() const
 {
     return attribute_value & A_BLINK;
-}
-
-void ensure_term_size();
-void check_encoding();
-
-void ensure_term_size()
-{
-    // do not use ui_adaptor here to avoid re-entry
-    const int minHeight = FULL_SCREEN_HEIGHT;
-    const int minWidth = FULL_SCREEN_WIDTH;
-    int maxy = getmaxy( catacurses::stdscr );
-    int maxx = getmaxx( catacurses::stdscr );
-
-    while( maxy < minHeight || maxx < minWidth ) {
-        catacurses::erase();
-        if( maxy < minHeight && maxx < minWidth ) {
-            fold_and_print( catacurses::stdscr, point_zero, maxx, c_white,
-                            _( "Whoa!  Your terminal is tiny!  This game requires a minimum terminal size of "
-                               "%dx%d to work properly.  %dx%d just won't do.  Maybe a smaller font would help?" ),
-                            minWidth, minHeight, maxx, maxy );
-        } else if( maxx < minWidth ) {
-            fold_and_print( catacurses::stdscr, point_zero, maxx, c_white,
-                            _( "Oh!  Hey, look at that.  Your terminal is just a little too narrow.  This game "
-                               "requires a minimum terminal size of %dx%d to function.  It just won't work "
-                               "with only %dx%d.  Can you stretch it out sideways a bit?" ),
-                            minWidth, minHeight, maxx, maxy );
-        } else {
-            fold_and_print( catacurses::stdscr, point_zero, maxx, c_white,
-                            _( "Woah, woah, we're just a little short on space here.  The game requires a "
-                               "minimum terminal size of %dx%d to run.  %dx%d isn't quite enough!  Can you "
-                               "make the terminal just a smidgen taller?" ),
-                            minWidth, minHeight, maxx, maxy );
-        }
-        catacurses::refresh();
-        // do not use input_manager or input_context here to avoid re-entry
-        getch();
-        maxy = getmaxy( catacurses::stdscr );
-        maxx = getmaxx( catacurses::stdscr );
-    }
-}
-
-void check_encoding()
-{
-    // Check whether LC_CTYPE supports the UTF-8 encoding
-    // and show a warning if it doesn't
-    if( std::strcmp( nl_langinfo( CODESET ), "UTF-8" ) != 0 ) {
-        // do not use ui_adaptor here to avoid re-entry
-        int key = ERR;
-        do {
-            const char *unicode_error_msg =
-                _( "You don't seem to have a valid Unicode locale. You may see some weird "
-                   "characters (e.g. empty boxes or question marks). You have been warned." );
-            catacurses::erase();
-            const int maxx = getmaxx( catacurses::stdscr );
-            fold_and_print( catacurses::stdscr, point_zero, maxx, c_white, unicode_error_msg );
-            catacurses::refresh();
-            // do not use input_manager or input_context here to avoid re-entry
-            key = getch();
-        } while( key == KEY_RESIZE || key == KEY_MOUSE );
-    }
 }
 
 #endif

@@ -10,8 +10,7 @@ then
     exit 1
 fi
 
-if "$REDUCE_TESTS_TEST_EXE" -d yes --abort --rng-seed "$rng_seed" \
-    $REDUCE_TESTS_EXTRA_OPTS \
+if ./tests/cata_test -d yes --abort --rng-seed "$rng_seed" \
     -f <(tr -d '{}' < "$multidelta_all_files")
 then
     exit 1

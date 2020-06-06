@@ -9,8 +9,6 @@
 #include "string_id.h"
 #include "type_id.h"
 
-static const itype_id itype_UPS( "UPS" );
-
 namespace
 {
 using ammo_map_t = std::unordered_map<ammotype, ammunition_type>;
@@ -22,11 +20,11 @@ ammo_map_t &all_ammunition_types()
 }
 } //namespace
 
-void ammunition_type::load_ammunition_type( const JsonObject &jsobj )
+void ammunition_type::load_ammunition_type( JsonObject &jsobj )
 {
     ammunition_type &res = all_ammunition_types()[ ammotype( jsobj.get_string( "id" ) ) ];
     res.name_             = jsobj.get_string( "name" );
-    jsobj.read( "default", res.default_ammotype_, true );
+    res.default_ammotype_ = jsobj.get_string( "default" );
 }
 
 /** @relates string_id */
@@ -66,11 +64,11 @@ void ammunition_type::check_consistency()
         const auto &at = ammo.second.default_ammotype_;
 
         // TODO: these ammo types should probably not have default ammo at all.
-        if( at == itype_UPS || at.str() == "components" || at.str() == "thrown" ) {
+        if( at == "UPS" || at == "components" || at == "thrown" ) {
             continue;
         }
 
-        if( !at.is_empty() && !item::type_is_defined( at ) ) {
+        if( !at.empty() && !item::type_is_defined( at ) ) {
             debugmsg( "ammo type %s has invalid default ammo %s", id.c_str(), at.c_str() );
         }
     }

@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": "estate_1icd",
-    "//": "first floor, inner corner D",
+    "comment": "first floor, inner corner D",
     "weight": 0,
     "method": "json",
     "object": {

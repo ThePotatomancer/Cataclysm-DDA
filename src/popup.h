@@ -1,21 +1,17 @@
 #pragma once
-#ifndef CATA_SRC_POPUP_H
-#define CATA_SRC_POPUP_H
+#ifndef POPUP_H
+#define POPUP_H
 
 #include <cstddef>
 #include <functional>
-#include <memory>
 #include <string>
-#include <utility>
 #include <vector>
+#include <utility>
 
-#include "color.h"
 #include "cursesdef.h"
 #include "input.h"
-#include "point.h"
+#include "color.h"
 #include "string_formatter.h"
-
-class ui_adaptor;
 
 /**
  * UI class for displaying messages or querying player input with popups.
@@ -191,13 +187,6 @@ class query_popup
          */
         result query();
 
-    protected:
-        /**
-         * Create or get a ui_adaptor on the UI stack to handle redrawing and
-         * resizing of the popup.
-         */
-        std::shared_ptr<ui_adaptor> create_or_get_adaptor();
-
     private:
         struct query_option {
             query_option( const std::string &action,
@@ -218,13 +207,11 @@ class query_popup
         bool fullscr;
 
         struct button {
-            button( const std::string &text, const point & );
+            button( const std::string &text, int x, int y );
 
             std::string text;
             point pos;
         };
-
-        std::weak_ptr<ui_adaptor> adaptor;
 
         // UI caches
         mutable catacurses::window win;
@@ -241,7 +228,7 @@ class query_popup
         template <typename ...Args>
         static void assert_format( const std::string &, Args &&... ) {
             static_assert( sizeof...( Args ) > 0,
-                           "Format string should take at least one argument.  "
+                           "Format string should take at least one argument. "
                            "If your message is not a format string, "
                            "use `message( \"%s\", text )` instead." );
         }
@@ -250,34 +237,4 @@ class query_popup
         static std::string wait_text( const std::string &text );
 };
 
-/**
- * Create a popup on the UI stack that gets displayed but receives no input itself.
- * Call ui_manager::redraw() to redraw the popup along with other UIs on the stack,
- * and refresh_display() to force refresh the display if not receiving input after
- * redraw. The popup stays on the UI stack until its lifetime ends.
- *
- * Example:
- *
- * if( not_loaded ) {
- *     static_popup popup;
- *     popup.message( "Please wait…" );
- *     while( loading ) {
- *         ui_manager::redraw();
- *         refresh_display(); // force redraw since we're not receiving input here
- *         load_part();
- *     }
- * }
- * // Popup removed from UI stack when going out of scope.
- * // Note that the removal is not visible until the next time `ui_manager::redraw`
- * // is called.
- */
-class static_popup : public query_popup
-{
-    public:
-        static_popup();
-
-    private:
-        std::shared_ptr<ui_adaptor> ui;
-};
-
-#endif // CATA_SRC_POPUP_H
+#endif

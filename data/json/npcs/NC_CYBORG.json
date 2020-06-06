@@ -8,7 +8,6 @@
   {
     "type": "item_group",
     "id": "NC_CYBORG_carried",
-    "subtype": "distribution",
-    "entries": [ { "item": "hat_noise_cancelling", "prob": 100 } ]
+    "items": [ [ "hat_noise_cancelling", 100 ] ]
   }
 ]

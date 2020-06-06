@@ -19,7 +19,7 @@
 #if defined(_WIN32)
 #include "platform_win.h"
 #else
-#include <csignal>
+#include <signal.h>
 #endif
 #include "color.h"
 #include "crash.h"
@@ -27,8 +27,6 @@
 #include "debug.h"
 #include "filesystem.h"
 #include "game.h"
-#include "game_ui.h"
-#include "input.h"
 #include "loading_ui.h"
 #include "main_menu.h"
 #include "mapsharing.h"
@@ -37,8 +35,8 @@
 #include "path_info.h"
 #include "rng.h"
 #include "translations.h"
+#include "input.h"
 #include "type_id.h"
-#include "ui_manager.h"
 
 #if defined(TILES)
 #   if defined(_MSC_VER) && defined(USE_VCPKG)
@@ -125,8 +123,7 @@ void printHelpMessage( const arg_handler *first_pass_arguments, size_t num_first
 }  // namespace
 
 #if defined(USE_WINMAIN)
-int APIENTRY WinMain( HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */,
-                      LPSTR /* lpCmdLine */, int /* nCmdShow */ )
+int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
     int argc = __argc;
     char **argv = __argv;
@@ -169,10 +166,10 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(__ANDROID__)
-    PATH_INFO::init_user_dir( external_storage_path );
+    PATH_INFO::init_user_dir( external_storage_path.c_str() );
 #else
 #   if defined(USE_HOME_DIR) || defined(USE_XDG_DIR)
-    PATH_INFO::init_user_dir( "" );
+    PATH_INFO::init_user_dir();
 #   else
     PATH_INFO::init_user_dir( "./" );
 #   endif
@@ -209,7 +206,7 @@ int main( int argc, char *argv[] )
                     }
                 },
                 {
-                    "--check-mods", "[mods…]",
+                    "--check-mods", "[mods...]",
                     "Checks the json files belonging to CDDA mods",
                     section_default,
                     [&check_mods, &opts]( int n, const char *params[] ) -> int {
@@ -223,7 +220,7 @@ int main( int argc, char *argv[] )
                     }
                 },
                 {
-                    "--dump-stats", "<what> [mode = TSV] [opts…]",
+                    "--dump-stats", "<what> [mode = TSV] [opts...]",
                     "Dumps item stats",
                     section_default,
                     [&dump, &dmode, &opts]( int n, const char *params[] ) -> int {
@@ -341,7 +338,6 @@ int main( int argc, char *argv[] )
                 },
                 {
                     "--userdir", "<path>",
-                    // NOLINTNEXTLINE(cata-text-style): the dot is not a period
                     "Base path for user-overrides to files from the ./data directory and named below",
                     section_user_directory,
                     []( int num_args, const char **params ) -> int {
@@ -378,7 +374,8 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_datadir( params[0] );
+                        PATH_INFO::update_pathname( "datadir", params[0] );
+                        PATH_INFO::update_datadir();
                         return 1;
                     }
                 },
@@ -391,7 +388,7 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_savedir( params[0] );
+                        PATH_INFO::update_pathname( "savedir", params[0] );
                         return 1;
                     }
                 },
@@ -404,7 +401,8 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_config_dir( params[0] );
+                        PATH_INFO::update_pathname( "config_dir", params[0] );
+                        PATH_INFO::update_config_dir();
                         return 1;
                     }
                 },
@@ -417,7 +415,7 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_memorialdir( params[0] );
+                        PATH_INFO::update_pathname( "memorialdir", params[0] );
                         return 1;
                     }
                 },
@@ -430,7 +428,7 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_options( params[0] );
+                        PATH_INFO::update_pathname( "options", params[0] );
                         return 1;
                     }
                 },
@@ -443,7 +441,7 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_keymap( params[0] );
+                        PATH_INFO::update_pathname( "keymap", params[0] );
                         return 1;
                     }
                 },
@@ -456,7 +454,7 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_autopickup( params[0] );
+                        PATH_INFO::update_pathname( "autopickup", params[0] );
                         return 1;
                     }
                 },
@@ -469,7 +467,7 @@ int main( int argc, char *argv[] )
                         {
                             return -1;
                         }
-                        PATH_INFO::set_motd( params[0] );
+                        PATH_INFO::update_pathname( "motd", params[0] );
                         return 1;
                     }
                 },
@@ -539,15 +537,15 @@ int main( int argc, char *argv[] )
         }
     }
 
-    if( !dir_exist( PATH_INFO::datadir() ) ) {
-        printf( "Fatal: Can't find data directory \"%s\"\nPlease ensure the current working directory is correct or specify data directory with --datadir.  Perhaps you meant to start \"cataclysm-launcher\"?\n",
-                PATH_INFO::datadir().c_str() );
+    if( !dir_exist( FILENAMES["datadir"] ) ) {
+        printf( "Fatal: Can't find directory \"%s\"\nPlease ensure the current working directory is correct. Perhaps you meant to start \"cataclysm-launcher\"?\n",
+                FILENAMES["datadir"].c_str() );
         exit( 1 );
     }
 
-    if( !assure_dir_exist( PATH_INFO::user_dir() ) ) {
+    if( !assure_dir_exist( FILENAMES["user_dir"] ) ) {
         printf( "Can't open or create %s. Check permissions.\n",
-                PATH_INFO::user_dir().c_str() );
+                FILENAMES["user_dir"].c_str() );
         exit( 1 );
     }
 
@@ -578,8 +576,9 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-    DebugLog( D_INFO, DC_ALL ) << "[main] C locale set to " << setlocale( LC_ALL, nullptr );
-    DebugLog( D_INFO, DC_ALL ) << "[main] C++ locale set to " << std::locale().name();
+    get_options().init();
+    get_options().load();
+    set_language();
 
 #if defined(TILES)
     SDL_version compiled;
@@ -597,11 +596,6 @@ int main( int argc, char *argv[] )
                                << static_cast<int>( linked.patch );
 #endif
 
-#if !defined(TILES)
-    get_options().init();
-    get_options().load();
-#endif
-
     // in test mode don't initialize curses to avoid escape sequences being inserted into output stream
     if( !test_mode ) {
         try {
@@ -616,8 +610,6 @@ int main( int argc, char *argv[] )
             return 1;
         }
     }
-
-    set_language();
 
     rng_set_engine_seed( seed );
 
@@ -646,7 +638,7 @@ int main( int argc, char *argv[] )
 
     // Now we do the actual game.
 
-    game_ui::init_ui();
+    g->init_ui();
 
     catacurses::curs_set( 0 ); // Invisible cursor here, because MAPBUFFER.load() is crash-prone
 
@@ -693,7 +685,6 @@ int main( int argc, char *argv[] )
             }
         }
 
-        shared_ptr_fast<ui_adaptor> ui = g->create_or_get_main_ui_adaptor();
         while( !g->do_turn() );
     }
 
@@ -743,7 +734,7 @@ void printHelpMessage( const arg_handler *first_pass_arguments,
         }
         printf( "\n" );
         if( handler->documentation ) {
-            printf( "    %s\n", handler->documentation );
+            printf( "\t%s\n", handler->documentation );
         }
     }
 }
@@ -753,7 +744,7 @@ void exit_handler( int s )
 {
     const int old_timeout = inp_mngr.get_timeout();
     inp_mngr.reset_timeout();
-    if( s != 2 || query_yn( _( "Really Quit?  All unsaved changes will be lost." ) ) ) {
+    if( s != 2 || query_yn( _( "Really Quit? All unsaved changes will be lost." ) ) ) {
         catacurses::erase(); // Clear screen
 
         deinitDebug();

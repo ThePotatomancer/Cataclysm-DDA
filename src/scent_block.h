@@ -1,11 +1,10 @@
 #pragma once
-#ifndef CATA_SRC_SCENT_BLOCK_H
-#define CATA_SRC_SCENT_BLOCK_H
+#ifndef SCENT_BLOCK_H
+#define SCENT_BLOCK_H
 
 #include <algorithm>
 #include <array>
 
-#include "coordinate_conversions.h"
 #include "point.h"
 #include "scent_map.h"
 
@@ -29,11 +28,8 @@ struct scent_block {
     scent_map &scents;
     int modification_count;
 
-    scent_block( const tripoint &sub, scent_map &scents )
-    // NOLINTNEXTLINE(cata-use-named-point-constants)
-        : origin( sm_to_ms_copy( sub ) + point( -1, -1 ) )
-        , scents( scents )
-        , modification_count( 0 ) {
+    scent_block( int subx, int suby, int subz, scent_map &scents )
+        : origin( subx * SEEX - 1, suby * SEEY - 1, subz ), scents( scents ), modification_count( 0 ) {
         for( int x = 0; x < SEEX + 2; ++x ) {
             for( int y = 0; y < SEEY + 2; ++y ) {
                 assignment[x][y] = { NONE, 0 };
@@ -70,14 +66,14 @@ struct scent_block {
     }
 
     point index( const tripoint &p ) const {
-        return -origin.xy() + p.xy();
+        return point( p.x - origin.x, p.y - origin.y );
     }
 
     // We should be working entirely within the range, so don't range check here
-    void apply_gas( const tripoint &p, const int nintensity = 0 ) {
+    void apply_gas( const tripoint &p ) {
         const point ndx = index( p );
         assignment[ndx.x][ndx.y].mode = SET;
-        assignment[ndx.x][ndx.y].intensity = std::max( 0, assignment[ndx.x][ndx.y].intensity - nintensity );
+        assignment[ndx.x][ndx.y].intensity = 0;
         ++modification_count;
     }
     void apply_slime( const tripoint &p, int intensity ) {
@@ -106,4 +102,4 @@ struct scent_block {
     }
 };
 
-#endif // CATA_SRC_SCENT_BLOCK_H
+#endif

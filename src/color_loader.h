@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_COLOR_LOADER_H
-#define CATA_SRC_COLOR_LOADER_H
+#ifndef COLOR_LOADER_H
+#define COLOR_LOADER_H
 
 #include <array>
 #include <fstream>
@@ -32,7 +32,7 @@ class color_loader
             return names;
         }
 
-        void load_colors( const JsonObject &jsobj ) {
+        void load_colors( JsonObject &jsobj ) {
             for( size_t c = 0; c < main_color_names().size(); c++ ) {
                 const std::string &color = main_color_names()[c];
                 JsonArray jsarr = jsobj.get_array( color );
@@ -61,8 +61,8 @@ class color_loader
     public:
         /// @throws std::exception upon any kind of error.
         void load( std::array<ColorType, COLOR_NAMES_COUNT> &windowsPalette ) {
-            const std::string default_path = PATH_INFO::colors();
-            const std::string custom_path = PATH_INFO::base_colors();
+            const std::string default_path = FILENAMES["colors"];
+            const std::string custom_path = FILENAMES["base_colors"];
 
             if( !file_exist( custom_path ) ) {
                 copy_file( default_path, custom_path );
@@ -71,7 +71,8 @@ class color_loader
             try {
                 load_colorfile( custom_path );
             } catch( const JsonError &err ) {
-                debugmsg( "Failed to load color data from \"%s\": %s", custom_path, err.what() );
+                DebugLog( D_ERROR, D_SDL ) << "Failed to load color data from " << custom_path << ": " <<
+                                           err.what();
 
                 // this should succeed, otherwise the installation is botched
                 load_colorfile( default_path );
@@ -83,4 +84,4 @@ class color_loader
         }
 };
 
-#endif // CATA_SRC_COLOR_LOADER_H
+#endif

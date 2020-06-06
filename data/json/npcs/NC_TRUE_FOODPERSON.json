@@ -11,7 +11,6 @@
       { "item": "dress_shirt" },
       { "item": "chestguard_hard" },
       { "item": "cape_fp" },
-      { "item": "fanny" },
       { "item": "armguard_hard" },
       { "item": "legguard_hard" },
       { "item": "gloves_rubber" },
@@ -21,8 +20,7 @@
   {
     "id": "NC_TRUE_FOODPERSON_melee",
     "type": "item_group",
-    "subtype": "distribution",
-    "entries": [ { "item": "bat", "prob": 50 }, { "item": "null", "prob": 50 } ]
+    "items": [ [ "bat", 50 ], [ "null", 50 ] ]
   },
   {
     "type": "item_group",
@@ -30,8 +28,8 @@
     "subtype": "collection",
     "entries": [
       { "item": "medium_disposable_cell", "prob": 90 },
-      { "item": "foodplace_snack_bar", "container-item": "fanny" },
-      { "item": "foodplace_snack_bar" }
+      { "group": "snacks_fancy", "prob": 30, "charges": 2 },
+      { "group": "snacks", "prob": 20, "charges": 2 }
     ]
   }
 ]

@@ -26,11 +26,11 @@ behavior_return sequential_t::evaluate( const oracle_t *subject,
 {
     for( const node_t *child : children ) {
         behavior_return outcome = child->tick( subject );
-        if( outcome.result == status_t::running || outcome.result == status_t::failure ) {
+        if( outcome.result == running || outcome.result == failure ) {
             return outcome;
         }
     }
-    return { status_t::success, nullptr };
+    return { success, nullptr };
 }
 
 // A standard behavior strategy, execute runnable children in order until one succeeds.
@@ -39,11 +39,11 @@ behavior_return fallback_t::evaluate( const oracle_t *subject,
 {
     for( const node_t *child : children ) {
         behavior_return outcome = child->tick( subject );
-        if( outcome.result == status_t::running || outcome.result == status_t::success ) {
+        if( outcome.result == running || outcome.result == success ) {
             return outcome;
         }
     }
-    return { status_t::failure, nullptr };
+    return { failure, nullptr };
 }
 
 // A non-standard behavior strategy, execute runnable children in order unconditionally.
@@ -52,9 +52,9 @@ behavior_return sequential_until_done_t::evaluate( const oracle_t *subject,
 {
     for( const node_t *child : children ) {
         behavior_return outcome = child->tick( subject );
-        if( outcome.result == status_t::running ) {
+        if( outcome.result == running ) {
             return outcome;
         }
     }
-    return { status_t::success, nullptr };
+    return { success, nullptr };
 }

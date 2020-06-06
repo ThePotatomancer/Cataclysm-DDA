@@ -1,8 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_RECT_RANGE_H
-#define CATA_SRC_RECT_RANGE_H
-
-#include "point.h"
+#ifndef RECT_RANGE_H
+#define RECT_RANGE_H
 
 // This is a template parameter, it's usually SDL_Rect, but that way the class
 // can be used without include any SDL header.
@@ -12,11 +10,12 @@ class rect_range
     private:
         int width;
         int height;
-        point count;
+        int xcount;
+        int ycount;
 
     public:
-        rect_range( const int w, const int h, const point &c ) : width( w ), height( h ),
-            count( c ) {
+        rect_range( const int w, const int h, const int xc, const int yc ) : width( w ), height( h ),
+            xcount( xc ), ycount( yc ) {
         }
 
         class iterator
@@ -37,7 +36,7 @@ class rect_range
                     return !operator==( rhs );
                 }
                 RectType operator*() const {
-                    return { ( index % range->count.x ) *range->width, ( index / range->count.x ) *range->height, range->width, range->height };
+                    return { ( index % range->xcount ) *range->width, ( index / range->xcount ) *range->height, range->width, range->height };
                 }
 
                 iterator operator+( const int offset ) const {
@@ -56,8 +55,8 @@ class rect_range
             return iterator( this, 0 );
         }
         iterator end() const {
-            return iterator( this, count.x * count.y );
+            return iterator( this, xcount * ycount );
         }
 };
 
-#endif // CATA_SRC_RECT_RANGE_H
+#endif

@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "factory_brc" ],
-    "//": "bottom right corner",
+    "comment": "bottom right corner",
     "method": "json",
     "weight": 250,
     "object": {

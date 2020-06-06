@@ -10,6 +10,7 @@ import json
 import re
 import os
 from StringIO import StringIO
+import sys
 
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))

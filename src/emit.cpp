@@ -1,12 +1,11 @@
 #include "emit.h"
 
-#include <algorithm>
 #include <map>
+#include <algorithm>
 #include <utility>
 
 #include "debug.h"
 #include "json.h"
-#include "string_id.h"
 
 static std::map<emit_id, emit> emits_all;
 
@@ -41,7 +40,7 @@ bool emit::is_null() const
     return id_ == emit_id::NULL_ID();
 }
 
-void emit::load_emit( const JsonObject &jo )
+void emit::load_emit( JsonObject &jo )
 {
     emit et;
 

@@ -4,7 +4,7 @@
     "id": "f_bookcase",
     "name": "bookcase",
     "symbol": "{",
-    "description": "A simple wooden shelf for storing dozens of books.  While designed for books, it does a decent job of storing anything else that'll fit.",
+    "description": "Stores books.  Y'know, those things.  Who reads books anymore?",
     "color": "brown",
     "move_cost_mod": -1,
     "coverage": 80,
@@ -17,7 +17,7 @@
         { "item": "nail", "charges": [ 12, 16 ] }
       ]
     },
-    "max_volume": "2000 L",
+    "max_volume": 8000,
     "bash": {
       "str_min": 6,
       "str_max": 40,
@@ -28,39 +28,9 @@
   },
   {
     "type": "furniture",
-    "id": "f_entertainment_center",
-    "name": "entertainment center",
-    "symbol": "{",
-    "description": "While not quite as cool by itself as the name might imply, this large wooden cabinet can store a variety of things, like a TV and media systems, with shelving space and cupboards for anything that'll fit.",
-    "color": "brown",
-    "looks_like": "f_bookcase",
-    "move_cost_mod": -1,
-    "coverage": 80,
-    "required_str": 10,
-    "flags": [ "FLAMMABLE", "PLACE_ITEM", "ORGANIC", "BLOCKSDOOR" ],
-    "deconstruct": {
-      "items": [ { "item": "2x4", "count": 14 }, { "item": "wood_panel", "count": 2 }, { "item": "nail", "charges": [ 12, 20 ] } ]
-    },
-    "max_volume": "2000 L",
-    "bash": {
-      "str_min": 6,
-      "str_max": 40,
-      "sound": "smash!",
-      "sound_fail": "whump.",
-      "items": [
-        { "item": "2x4", "count": [ 2, 12 ] },
-        { "item": "nail", "charges": [ 4, 20 ] },
-        { "item": "splinter", "count": [ 6, 10 ] },
-        { "item": "wood_panel", "count": [ 0, 1 ] }
-      ]
-    }
-  },
-  {
-    "type": "furniture",
     "id": "f_coffin_c",
     "name": "coffin",
-    "looks_like": "f_coffin_o",
-    "description": "A humble wooden casket for the respectful burial of the dead.  While a standard practice before this all happened, it is now a rare honor for one to be given a proper final resting place.  An honor that countless many will likely never receive.",
+    "description": "Holds the bodies of the countless killed in the Cataclysm.",
     "symbol": "0",
     "bgcolor": "brown",
     "move_cost_mod": -1,
@@ -86,7 +56,7 @@
         { "item": "rag", "count": [ 15, 20 ] }
       ]
     },
-    "max_volume": "875 L",
+    "max_volume": 3500,
     "bash": {
       "str_min": 12,
       "str_max": 40,
@@ -104,7 +74,7 @@
     "type": "furniture",
     "id": "f_coffin_o",
     "name": "open coffin",
-    "description": "A humble wooden casket for the respectful burial of the dead.  While a standard practice before this all happened, it is now a rare honor for one to be given a proper final resting place.  This one is open and unoccupied, and gazing inside fills you with a sense of melancholic weariness.",
+    "description": "You can only hope you'll look good enough for one of these, when the time comes.",
     "symbol": "O",
     "bgcolor": "brown",
     "move_cost_mod": -1,
@@ -119,7 +89,7 @@
         { "item": "rag", "count": [ 15, 20 ] }
       ]
     },
-    "max_volume": "875 L",
+    "max_volume": 3500,
     "bash": {
       "str_min": 12,
       "str_max": 40,
@@ -137,7 +107,7 @@
     "type": "furniture",
     "id": "f_crate_c",
     "name": "crate",
-    "description": "A sealed wooden storage container.  Lacking any labels, it could hold just about anything inside.  If you don't have a proper tool to pry it open, smashing it is an option, albeit one that risks destroying the contents.",
+    "description": "What's inside?  Pry it open to find out!  Or just smash it, but you might break the contents.",
     "symbol": "X",
     "bgcolor": "brown",
     "move_cost_mod": -1,
@@ -158,6 +128,7 @@
     "deconstruct": {
       "items": [ { "item": "2x4", "count": 4 }, { "item": "wood_panel", "count": [ 1, 2 ] }, { "item": "nail", "charges": [ 6, 10 ] } ]
     },
+    "max_volume": 4000,
     "bash": {
       "str_min": 12,
       "str_max": 40,
@@ -170,7 +141,7 @@
     "type": "furniture",
     "id": "f_crate_o",
     "name": "open crate",
-    "description": "An open wooden storage box, capable of holding any number of things.  The lid has been pried off and is leaned adjacent to it, and with a fresh set of nails, could be sealed back shut.",
+    "description": "What's inside?  Look in it!",
     "symbol": "O",
     "bgcolor": "brown",
     "move_cost_mod": -1,
@@ -180,6 +151,7 @@
     "deconstruct": {
       "items": [ { "item": "2x4", "count": 4 }, { "item": "wood_panel", "count": [ 0, 1 ] }, { "item": "nail", "charges": [ 6, 10 ] } ]
     },
+    "max_volume": 4000,
     "bash": {
       "str_min": 12,
       "str_max": 40,
@@ -190,37 +162,30 @@
   },
   {
     "type": "furniture",
-    "id": "f_cardboard_box",
-    "name": "large cardboard box",
-    "symbol": "X",
-    "description": "A large box made of a brown paper-based material.  Could contain a number of things, or even be hidden inside.  Considering it only has two small flaps for carrying, it's very hard to see out of, and won't do anything to protect you if you're found.",
-    "color": "brown",
-    "move_cost_mod": 7,
-    "coverage": 90,
-    "comfort": 1,
-    "floor_bedding_warmth": 200,
-    "required_str": 3,
-    "deconstruct": { "items": [ { "item": "box_large", "count": 1 } ] },
-    "max_volume": "1500 L",
-    "deployed_item": "box_large",
-    "examine_action": "deployed_furniture",
-    "flags": [
-      "TRANSPARENT",
-      "FLAMMABLE_ASH",
-      "PLACE_ITEM",
-      "ORGANIC",
-      "EASY_DECONSTRUCT",
-      "BASHABLE",
-      "HIDE_PLACE",
-      "NO_SIGHT",
-      "CONTAINER"
-    ],
+    "id": "f_cupboard",
+    "name": "cupboard",
+    "symbol": "#",
+    "description": "Store your cups.",
+    "color": "blue",
+    "move_cost_mod": 1,
+    "coverage": 55,
+    "required_str": -1,
+    "flags": [ "TRANSPARENT", "FLAMMABLE_ASH", "CONTAINER", "PLACE_ITEM", "ORGANIC", "MOUNTABLE" ],
+    "deconstruct": {
+      "items": [ { "item": "2x4", "count": 3 }, { "item": "wood_panel", "count": 1 }, { "item": "nail", "charges": [ 6, 8 ] } ]
+    },
+    "max_volume": 4000,
     "bash": {
-      "str_min": 2,
-      "str_max": 15,
-      "sound": "crumple!",
-      "sound_fail": "thud.",
-      "items": [ { "item": "paper", "charges": [ 50, 100 ] } ]
+      "str_min": 8,
+      "str_max": 30,
+      "sound": "smash!",
+      "sound_fail": "whump.",
+      "items": [
+        { "item": "2x4", "count": [ 1, 3 ] },
+        { "item": "wood_panel", "count": [ 0, 1 ] },
+        { "item": "nail", "charges": [ 2, 6 ] },
+        { "item": "splinter", "count": 1 }
+      ]
     }
   },
   {
@@ -228,7 +193,7 @@
     "id": "f_dresser",
     "name": "dresser",
     "symbol": "{",
-    "description": "A simple wooden cabinet with a column of short drawers.  While intended for storing clothes, there's nothing stopping you from storing whatever fits.",
+    "description": "Dress yourself for the zombie prom, or other occasions.",
     "color": "brown",
     "move_cost_mod": -1,
     "coverage": 70,
@@ -237,7 +202,7 @@
     "deconstruct": {
       "items": [ { "item": "2x4", "count": 6 }, { "item": "wood_panel", "count": [ 0, 1 ] }, { "item": "nail", "charges": [ 6, 8 ] } ]
     },
-    "max_volume": "2000 L",
+    "max_volume": 8000,
     "bash": {
       "str_min": 12,
       "str_max": 40,
@@ -252,7 +217,7 @@
     "name": "glass front cabinet",
     "symbol": "[",
     "looks_like": "f_display_rack",
-    "description": "A tall metal cabinet with a sheet of glass across the front for viewing the contents.  Often used for displaying rare, visually pleasing, or otherwise valuable goods, it's odd that it doesn't have a lock.",
+    "description": "A tall storage cabinet with a clear glass window.",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
@@ -267,7 +232,7 @@
         { "item": "pipe", "count": [ 0, 4 ] }
       ]
     },
-    "max_volume": "400 L",
+    "max_volume": 1600,
     "bash": {
       "str_min": 12,
       "str_max": 40,
@@ -286,15 +251,15 @@
     "type": "furniture",
     "id": "f_gunsafe_ml",
     "name": "gun safe",
-    "description": "A large and heavy container with thick metal walls and a rotary combination lock, this is designed to securely store firearms, weapon mods, and ammunition.  If you had something to listen close with and a hell of a lot of time, you could probably crack it.",
+    "description": "Oooooohhhh.  Shiny.",
     "symbol": "X",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
     "required_str": 14,
-    "max_volume": "250 L",
-    "flags": [ "TRANSPARENT", "CONTAINER", "SEALED", "PLACE_ITEM", "MOUNTABLE", "MINEABLE", "PICKABLE" ],
-    "examine_action": "locked_object_pickable",
+    "max_volume": 1000,
+    "flags": [ "TRANSPARENT", "CONTAINER", "SEALED", "PLACE_ITEM", "MOUNTABLE", "MINEABLE" ],
+    "examine_action": "gunsafe_ml",
     "bash": {
       "str_min": 40,
       "str_max": 200,
@@ -311,14 +276,13 @@
     "type": "furniture",
     "id": "f_gunsafe_mj",
     "name": "jammed gun safe",
-    "looks_like": "f_gunsafe_ml",
-    "description": "A heavy and durable metal safe for storing firearms and ammunition.  Unfortunately, the lock is completely broken, and short of some pretty serious machinery, you have no possible way of opening it.",
+    "description": "Does it have guns in it?  You won't find out.  It's jammed.",
     "symbol": "X",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
     "required_str": 14,
-    "max_volume": "250 L",
+    "max_volume": 1000,
     "flags": [ "TRANSPARENT", "CONTAINER", "SEALED", "PLACE_ITEM", "MOUNTABLE", "MINEABLE" ],
     "bash": {
       "str_min": 40,
@@ -336,14 +300,13 @@
     "type": "furniture",
     "id": "f_gun_safe_el",
     "name": "electronic gun safe",
-    "looks_like": "f_gunsafe_ml",
-    "description": "A large and heavy container with thick metal walls and an electronic locking system, this is designed to securely store firearms, weapon mods, and ammunition.  If you had some way of hacking into it, you could probably crack it open.",
+    "description": "Can you hack it open to get the firearms?",
     "symbol": "X",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
     "required_str": 14,
-    "max_volume": "250 L",
+    "max_volume": 1000,
     "flags": [ "TRANSPARENT", "CONTAINER", "SEALED", "PLACE_ITEM", "MOUNTABLE", "MINEABLE" ],
     "examine_action": "gunsafe_el",
     "bash": {
@@ -363,7 +326,7 @@
     "id": "f_locker",
     "name": "locker",
     "symbol": "{",
-    "description": "A tall sheet metal cabinet, useful for storing just about anything that'll fit.",
+    "description": "Usually used for storing equipment or items.",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 90,
@@ -377,16 +340,17 @@
         { "item": "pipe", "count": [ 4, 8 ] }
       ]
     },
-    "max_volume": "500 L",
+    "max_volume": 2000,
     "bash": {
       "str_min": 12,
       "str_max": 40,
       "sound": "metal screeching!",
       "sound_fail": "clang!",
       "items": [
-        { "item": "scrap", "count": [ 4, 10 ] },
+        { "item": "scrap", "count": [ 2, 8 ] },
+        { "item": "steel_chunk", "count": [ 2, 4 ] },
         { "item": "sheet_metal_small", "count": [ 6, 10 ] },
-        { "item": "pipe", "count": [ 0, 1 ] }
+        { "item": "pipe", "count": 1 }
       ]
     }
   },
@@ -395,7 +359,7 @@
     "id": "f_mailbox",
     "name": "mailbox",
     "symbol": "P",
-    "description": "A small metal box on top of a wooden post, designed to receive mail deliveries.  Although considering the circumstances, it will likely never see proper use again.",
+    "description": "A metal box attached to the top of a wooden post.  Mail delivery hasn't come for awhile.  Doesn't look like it's coming again anytime soon.",
     "color": "light_gray",
     "move_cost_mod": 1,
     "required_str": -1,
@@ -403,7 +367,7 @@
     "deconstruct": {
       "items": [ { "item": "2x4", "count": 2 }, { "item": "nail", "charges": [ 2, 5 ] }, { "item": "sheet_metal", "count": 1 } ]
     },
-    "max_volume": "10 L",
+    "max_volume": 40,
     "bash": {
       "str_min": 12,
       "str_max": 50,
@@ -420,43 +384,9 @@
   },
   {
     "type": "furniture",
-    "id": "f_clothing_rail",
-    "name": "clothing rail",
-    "looks_like": "f_rack",
-    "description": "A metal frame on a set of wheels used for hanging large amounts of clothes.  Usually used in theater or retail environments, it's easy to use and quick to access.",
-    "symbol": "{",
-    "color": "light_gray",
-    "move_cost_mod": -1,
-    "coverage": 10,
-    "required_str": 8,
-    "flags": [ "TRANSPARENT", "FLAMMABLE_HARD", "PLACE_ITEM", "BLOCKSDOOR" ],
-    "deconstruct": {
-      "items": [
-        { "item": "pipe", "count": [ 4, 6 ] },
-        { "item": "sheet_metal_small", "count": [ 0, 4 ] },
-        { "item": "wheel_caster", "count": 1 }
-      ]
-    },
-    "max_volume": "1750 L",
-    "bash": {
-      "str_min": 6,
-      "str_max": 30,
-      "sound": "metal screeching!",
-      "sound_fail": "clang!",
-      "items": [
-        { "item": "scrap", "count": [ 2, 8 ] },
-        { "item": "steel_chunk", "count": [ 2, 4 ] },
-        { "item": "sheet_metal_small", "count": [ 6, 10 ] },
-        { "item": "pipe", "count": 1 },
-        { "item": "wheel_caster", "count": [ 0, 1 ] }
-      ]
-    }
-  },
-  {
-    "type": "furniture",
     "id": "f_rack",
     "name": "display rack",
-    "description": "A sheet metal shelving unit, with the storage surfaces angled in such a way as to show off the items stored.",
+    "description": "Display your items.",
     "symbol": "{",
     "color": "light_gray",
     "move_cost_mod": -1,
@@ -470,7 +400,7 @@
         { "item": "sheet_metal_small", "count": [ 0, 4 ] }
       ]
     },
-    "max_volume": "1750 L",
+    "max_volume": 7000,
     "bash": {
       "str_min": 6,
       "str_max": 30,
@@ -486,37 +416,9 @@
   },
   {
     "type": "furniture",
-    "id": "f_rack_wood",
-    "name": "wooden rack",
-    "symbol": "{",
-    "description": "A wooden shelving unit with angled storage surfaces designed to show off whatever is stored on it.",
-    "color": "brown",
-    "move_cost_mod": -1,
-    "coverage": 70,
-    "required_str": 7,
-    "looks_like": "f_bookcase",
-    "flags": [ "FLAMMABLE", "PLACE_ITEM", "ORGANIC", "BLOCKSDOOR", "TRANSPARENT" ],
-    "deconstruct": {
-      "items": [
-        { "item": "2x4", "count": 12 },
-        { "item": "wood_panel", "count": [ 1, 2 ] },
-        { "item": "nail", "charges": [ 32, 40 ] }
-      ]
-    },
-    "max_volume": "1500 L",
-    "bash": {
-      "str_min": 6,
-      "str_max": 40,
-      "sound": "smash!",
-      "sound_fail": "whump.",
-      "items": [ { "item": "2x4", "count": [ 2, 6 ] }, { "item": "nail", "charges": [ 20, 40 ] }, { "item": "splinter", "count": 12 } ]
-    }
-  },
-  {
-    "type": "furniture",
     "id": "f_rack_coat",
     "name": "coat rack",
-    "description": "A tall wooden pole with a set of hooks used to store outdoor jackets and hats to allow easy access.",
+    "description": "A hooked rack for hanging jackets and hats.",
     "symbol": "Y",
     "color": "brown",
     "move_cost_mod": -1,
@@ -524,7 +426,7 @@
     "required_str": 4,
     "flags": [ "TRANSPARENT", "FLAMMABLE", "PLACE_ITEM", "BLOCKSDOOR", "MOUNTABLE" ],
     "deconstruct": { "items": [ { "item": "nail", "charges": [ 2, 6 ] }, { "item": "2x4", "count": 2 } ] },
-    "max_volume": "30 L",
+    "max_volume": 120,
     "bash": {
       "str_min": 6,
       "str_max": 30,
@@ -537,13 +439,13 @@
     "type": "furniture",
     "id": "f_recycle_bin",
     "name": "recycle bin",
-    "description": "A large plastic bin painted green with a 'recycle' symbol emblazoned on it.  While intended to store discarded things to be processed back into a factory, the drastic change in priorities as of late means that these may hold valuable materials.",
+    "description": "Stores items for recycling.",
     "symbol": "{",
     "color": "light_green",
     "move_cost_mod": -1,
     "coverage": 40,
     "required_str": 5,
-    "max_volume": "200 L",
+    "max_volume": 80,
     "flags": [ "TRANSPARENT", "FLAMMABLE_ASH", "CONTAINER", "PLACE_ITEM", "MOUNTABLE", "SHORT" ],
     "bash": {
       "str_min": 8,
@@ -557,14 +459,13 @@
     "type": "furniture",
     "id": "f_safe_c",
     "name": "safe",
-    "looks_like": "f_gunsafe_ml",
-    "description": "A small, heavy, and near-unbreachable metal box with a rotary combination lock.  Although, this isn't actually locked, just closed.",
+    "description": "Holds items.  Securely.",
     "symbol": "X",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
     "required_str": 14,
-    "max_volume": "250 L",
+    "max_volume": 1000,
     "flags": [ "TRANSPARENT", "CONTAINER", "SEALED", "PLACE_ITEM", "MOUNTABLE", "MINEABLE" ],
     "open": "f_safe_o",
     "examine_action": "open_safe",
@@ -584,14 +485,13 @@
     "type": "furniture",
     "id": "f_safe_l",
     "name": "safe",
-    "looks_like": "f_safe_c",
     "symbol": "X",
-    "description": "A small, heavy, and near-unbreachable metal box with a rotary combination lock.  With something to listen really closely and a hell of a lot of time, you might be able to crack it.",
+    "description": "What needs protection like this?",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
     "required_str": 14,
-    "max_volume": "250 L",
+    "max_volume": 1000,
     "flags": [ "TRANSPARENT", "CONTAINER", "SEALED", "PLACE_ITEM", "MOUNTABLE", "MINEABLE" ],
     "examine_action": "safe",
     "bash": {
@@ -610,14 +510,13 @@
     "type": "furniture",
     "id": "f_safe_o",
     "name": "open safe",
-    "looks_like": "f_safe_c",
-    "description": "A small, heavy, and near-unbreachable metal box with a rotary combination lock, albeit significantly less secure with the door open.",
+    "description": "Grab the firearms!",
     "symbol": "O",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 30,
     "required_str": 14,
-    "max_volume": "250 L",
+    "max_volume": 1000,
     "flags": [ "TRANSPARENT", "CONTAINER", "PLACE_ITEM", "MOUNTABLE", "MINEABLE" ],
     "close": "f_safe_c",
     "bash": {
@@ -637,11 +536,11 @@
     "id": "f_trashcan",
     "name": "trash can",
     "symbol": "&",
-    "description": "A plastic bin for storing discarded waste as to be disposed of later.  Although, considering the circumstances, it might be worth seeing what's inside.",
+    "description": "One man's trash is another man's dinner.",
     "color": "light_cyan",
     "move_cost_mod": 1,
     "required_str": 5,
-    "max_volume": "20 L",
+    "max_volume": 80,
     "flags": [ "TRANSPARENT", "FLAMMABLE_ASH", "CONTAINER", "PLACE_ITEM", "MOUNTABLE", "SHORT" ],
     "bash": {
       "str_min": 8,
@@ -653,69 +552,11 @@
   },
   {
     "type": "furniture",
-    "id": "f_wardrobe",
-    "name": "wardrobe",
-    "looks_like": "f_dresser",
-    "description": "A very large wooden cabinet for storing clothes, effectively an upright closet.  Could technically be used to store anything else that would fit, though.",
-    "symbol": "{",
-    "color": "i_brown",
-    "move_cost_mod": -1,
-    "coverage": 85,
-    "required_str": 9,
-    "flags": [ "CONTAINER", "FLAMMABLE", "PLACE_ITEM", "ORGANIC", "BLOCKSDOOR", "MOUNTABLE" ],
-    "deconstruct": {
-      "items": [ { "item": "2x4", "count": 20 }, { "item": "nail", "charges": [ 16, 24 ] }, { "item": "pipe", "count": 2 } ]
-    },
-    "max_volume": "500 L",
-    "bash": {
-      "str_min": 12,
-      "str_max": 40,
-      "sound": "smash!",
-      "sound_fail": "whump.",
-      "items": [
-        { "item": "2x4", "count": [ 8, 12 ] },
-        { "item": "nail", "charges": [ 8, 14 ] },
-        { "item": "splinter", "count": [ 4, 10 ] },
-        { "item": "pipe", "count": [ 0, 1 ] },
-        { "item": "scrap", "count": [ 2, 5 ] }
-      ]
-    }
-  },
-  {
-    "type": "furniture",
-    "id": "f_filing_cabinet",
-    "name": "filing cabinet",
-    "looks_like": "f_rack",
-    "description": "A rack of metal drawers designed to hold various files and paperwork.  Paperwork that has more than likely lost all worth or value by now.",
-    "symbol": "}",
-    "color": "dark_gray",
-    "move_cost_mod": 2,
-    "coverage": 70,
-    "required_str": 7,
-    "flags": [ "PLACE_ITEM", "TRANSPARENT", "CONTAINER", "BLOCKSDOOR", "MOUNTABLE" ],
-    "deconstruct": {
-      "items": [
-        { "item": "sheet_metal", "count": [ 2, 6 ] },
-        { "item": "scrap", "count": [ 2, 6 ] },
-        { "item": "lock", "count": [ 0, 1 ] }
-      ]
-    },
-    "max_volume": "200 L",
-    "bash": {
-      "str_min": 8,
-      "str_max": 30,
-      "sound": "metal screeching!",
-      "sound_fail": "clang!",
-      "items": [ { "item": "scrap", "count": [ 0, 6 ] }, { "item": "sheet_metal", "count": [ 0, 4 ] } ]
-    }
-  },
-  {
-    "type": "furniture",
     "id": "f_utility_shelf",
     "name": "utility shelf",
     "symbol": "{",
     "looks_like": "f_rack",
-    "description": "A simple heavy-duty plastic and metal shelving unit, intended to store tools and materials for easy access to workers.",
+    "description": "A simple heavy-duty plastic and metal shelving unit.",
     "color": "light_gray",
     "move_cost_mod": -1,
     "coverage": 55,
@@ -728,7 +569,7 @@
         { "item": "pipe", "count": [ 4, 8 ] }
       ]
     },
-    "max_volume": "1500 L",
+    "max_volume": 2000,
     "bash": {
       "str_min": 16,
       "str_max": 40,
@@ -744,43 +585,9 @@
   },
   {
     "type": "furniture",
-    "id": "f_warehouse_shelf",
-    "name": "warehouse shelf",
-    "description": "A huge, sturdy steel shelf for storing pallets of crates in warehouses.",
-    "symbol": "{",
-    "looks_like": "f_utility_shelf",
-    "color": "light_gray",
-    "move_cost_mod": -1,
-    "coverage": 95,
-    "required_str": 10,
-    "flags": [ "FLAMMABLE_HARD", "PLACE_ITEM", "BLOCKSDOOR" ],
-    "deconstruct": {
-      "items": [
-        { "item": "pipe", "count": [ 6, 12 ] },
-        { "item": "sheet_metal", "count": [ 4, 8 ] },
-        { "item": "sheet_metal_small", "count": [ 0, 4 ] }
-      ]
-    },
-    "max_volume": "3500 L",
-    "bash": {
-      "str_min": 8,
-      "str_max": 30,
-      "sound": "metal screeching!",
-      "sound_fail": "clang!",
-      "items": [
-        { "item": "scrap", "count": [ 3, 12 ] },
-        { "item": "steel_chunk", "count": [ 3, 6 ] },
-        { "item": "sheet_metal_small", "count": [ 6, 10 ] },
-        { "item": "pipe", "count": 4 }
-      ]
-    }
-  },
-  {
-    "type": "furniture",
     "id": "f_wood_keg",
     "name": "wooden keg",
-    "looks_like": "f_standing_tank",
-    "description": "A large standing wooden barrel, completely watertight.  Good for storing liquids of all kinds or fermenting alcohol.",
+    "description": "A keg made mostly of wood.  Holds liquids, preferably alcoholic.",
     "symbol": "H",
     "color": "brown",
     "move_cost_mod": -1,
@@ -810,124 +617,6 @@
         { "item": "sheet_metal_small", "count": [ 6, 12 ] },
         { "item": "scrap", "count": [ 10, 20 ] },
         { "item": "splinter", "count": 1 }
-      ]
-    }
-  },
-  {
-    "type": "furniture",
-    "id": "f_displaycase",
-    "name": "display case",
-    "looks_like": "f_rack",
-    "description": "A secure wooden case at about waist-height, with glass panelling on the top.  Useful for storing valuable things while still showing them off.  Not actually as secure as it looks, as the display windows are easily broken.",
-    "symbol": "#",
-    "color": "light_cyan",
-    "move_cost_mod": 2,
-    "coverage": 80,
-    "required_str": 9,
-    "flags": [ "TRANSPARENT", "SEALED", "PLACE_ITEM" ],
-    "bash": {
-      "str_min": 6,
-      "str_max": 20,
-      "sound": "glass breaking",
-      "sound_fail": "whack!",
-      "sound_vol": 16,
-      "sound_fail_vol": 12,
-      "furn_set": "f_displaycase_b",
-      "items": [ { "item": "glass_shard", "count": [ 25, 50 ] } ]
-    }
-  },
-  {
-    "type": "furniture",
-    "id": "f_displaycase_b",
-    "name": "broken display case",
-    "looks_like": "f_rack",
-    "description": "A secure wooden case at about waist-height, with glass panelling on the top.  Would be useful for storing valuable things while still showing them off, if the glass hadn't been shattered.  Careful not to cut yourself when looting.",
-    "symbol": "#",
-    "color": "light_gray",
-    "move_cost_mod": 2,
-    "coverage": 80,
-    "required_str": 9,
-    "flags": [ "TRANSPARENT", "PLACE_ITEM" ],
-    "bash": {
-      "str_min": 8,
-      "str_max": 30,
-      "sound": "crunch!",
-      "sound_fail": "whump.",
-      "items": [ { "item": "2x4", "count": [ 3, 6 ] }, { "item": "splinter", "count": [ 2, 4 ] } ]
-    }
-  },
-  {
-    "type": "furniture",
-    "id": "f_standing_tank",
-    "name": "standing tank",
-    "description": "A huge metal tank that can be used to safely store large amounts of liquid.",
-    "symbol": "O",
-    "color": "light_gray",
-    "move_cost_mod": -1,
-    "coverage": 90,
-    "required_str": -1,
-    "flags": [ "BASHABLE", "CONTAINER", "DECONSTRUCT", "LIQUIDCONT", "NOITEM", "SEALED", "TRANSPARENT" ],
-    "deconstruct": { "items": [ { "item": "metal_tank", "count": 4 }, { "item": "water_faucet", "count": 1 } ] },
-    "examine_action": "keg",
-    "keg_capacity": 1200,
-    "bash": {
-      "str_min": 10,
-      "str_max": 20,
-      "sound": "metal screeching!",
-      "sound_fail": "clang!",
-      "items": [ { "item": "scrap", "count": [ 8, 32 ] }, { "item": "water_faucet", "prob": 50 } ]
-    }
-  },
-  {
-    "type": "furniture",
-    "id": "f_dumpster",
-    "name": "dumpster",
-    "description": "A large metal dumpster that will likely not be getting picked up by the city's waste management any time soon.  Despite the unpleasant nature of climbing inside, it could make for a viable hiding spot.",
-    "symbol": "{",
-    "color": "green",
-    "move_cost_mod": 3,
-    "coverage": 70,
-    "required_str": 16,
-    "flags": [ "CONTAINER", "PLACE_ITEM", "BLOCKSDOOR", "HIDE_PLACE", "NO_SIGHT" ],
-    "bash": {
-      "str_min": 8,
-      "str_max": 45,
-      "sound": "metal screeching!",
-      "sound_fail": "clang!",
-      "items": [
-        { "item": "scrap", "count": [ 2, 8 ] },
-        { "item": "steel_chunk", "count": [ 1, 3 ] },
-        { "item": "pipe", "count": [ 1, 2 ] }
-      ]
-    }
-  },
-  {
-    "type": "furniture",
-    "id": "f_butter_churn",
-    "name": "butter churn",
-    "description": "A metal tube with a built-in mixer for making butter.  Rather than needing electricity, it is pedal-driven, allowing use without power.",
-    "symbol": "H",
-    "color": "light_cyan",
-    "crafting_pseudo_item": "butter_churn",
-    "move_cost_mod": -1,
-    "coverage": 70,
-    "required_str": -1,
-    "flags": [ "NOITEM", "SEALED", "ALLOW_FIELD_EFFECT", "TRANSPARENT", "FLAMMABLE", "CONTAINER", "LIQUIDCONT", "EASY_DECONSTRUCT" ],
-    "examine_action": "keg",
-    "keg_capacity": 45,
-    "deconstruct": { "items": [ { "item": "churn", "count": 1 } ] },
-    "bash": {
-      "str_min": 12,
-      "str_max": 50,
-      "sound": "smash!",
-      "sound_fail": "whump.",
-      "items": [
-        { "item": "2x4", "count": [ 6, 12 ] },
-        { "item": "nail", "charges": [ 4, 8 ] },
-        { "item": "water_faucet", "prob": 50 },
-        { "item": "sheet_metal_small", "count": [ 6, 12 ] },
-        { "item": "scrap", "count": [ 10, 20 ] },
-        { "item": "splinter", "count": [ 1, 20 ] }
       ]
     }
   }

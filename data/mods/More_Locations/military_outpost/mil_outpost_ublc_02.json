@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_ublc" ],
-    "//": "underground bottom left corner",
+    "comment": "underground bottom left corner",
     "method": "json",
     "weight": 250,
     "object": {

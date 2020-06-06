@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": "estate_2be",
-    "//": "second floor, bottom edge",
+    "comment": "second floor, bottom edge",
     "weight": 99,
     "method": "json",
     "object": {

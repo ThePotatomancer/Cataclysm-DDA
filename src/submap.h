@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_SUBMAP_H
-#define CATA_SRC_SUBMAP_H
+#ifndef SUBMAP_H
+#define SUBMAP_H
 
 #include <cstddef>
 #include <cstdint>
@@ -11,6 +11,7 @@
 #include <map>
 
 #include "active_item_cache.h"
+#include "basecamp.h"
 #include "calendar.h"
 #include "colony.h"
 #include "computer.h"
@@ -18,18 +19,16 @@
 #include "field.h"
 #include "game_constants.h"
 #include "item.h"
-#include "mapgen.h"
-#include "point.h"
 #include "type_id.h"
+#include "vehicle.h"
+#include "point.h"
 
 class JsonIn;
 class JsonOut;
-class basecamp;
 class map;
 struct trap;
 struct ter_t;
 struct furn_t;
-class vehicle;
 
 struct spawn_point {
     point pos;
@@ -39,12 +38,11 @@ struct spawn_point {
     int mission_id;
     bool friendly;
     std::string name;
-    spawn_data data;
     spawn_point( const mtype_id &T = mtype_id::NULL_ID(), int C = 0, point P = point_zero,
                  int FAC = -1, int MIS = -1, bool F = false,
-                 const std::string &N = "NONE", spawn_data SD = spawn_data() ) :
+                 const std::string &N = "NONE" ) :
         pos( P ), count( C ), type( T ), faction_id( FAC ),
-        mission_id( MIS ), friendly( F ), name( N ), data( SD ) {}
+        mission_id( MIS ), friendly( F ), name( N ) {}
 };
 
 template<int sx, int sy>
@@ -61,14 +59,10 @@ struct maptile_soa {
     void swap_soa_tile( const point &p, maptile_soa<1, 1> &other );
 };
 
-class submap : maptile_soa<SEEX, SEEY>
+class submap : public maptile_soa<SEEX, SEEY>    // TODO: Use private inheritance.
 {
     public:
         submap();
-        submap( submap && );
-        ~submap();
-
-        submap &operator=( submap && );
 
         trap_id get_trap( const point &p ) const {
             return trp[p.x][p.y];
@@ -77,10 +71,6 @@ class submap : maptile_soa<SEEX, SEEY>
         void set_trap( const point &p, trap_id trap ) {
             is_uniform = false;
             trp[p.x][p.y] = trap;
-        }
-
-        void set_all_traps( const trap_id &trap ) {
-            std::uninitialized_fill_n( &trp[0][0], elements, trap );
         }
 
         furn_id get_furn( const point &p ) const {
@@ -92,10 +82,6 @@ class submap : maptile_soa<SEEX, SEEY>
             frn[p.x][p.y] = furn;
         }
 
-        void set_all_furn( const furn_id &furn ) {
-            std::uninitialized_fill_n( &frn[0][0], elements, furn );
-        }
-
         ter_id get_ter( const point &p ) const {
             return ter[p.x][p.y];
         }
@@ -105,10 +91,6 @@ class submap : maptile_soa<SEEX, SEEY>
             ter[p.x][p.y] = terr;
         }
 
-        void set_all_ter( const ter_id &terr ) {
-            std::uninitialized_fill_n( &ter[0][0], elements, terr );
-        }
-
         int get_radiation( const point &p ) const {
             return rad[p.x][p.y];
         }
@@ -116,15 +98,6 @@ class submap : maptile_soa<SEEX, SEEY>
         void set_radiation( const point &p, const int radiation ) {
             is_uniform = false;
             rad[p.x][p.y] = radiation;
-        }
-
-        uint8_t get_lum( const point &p ) const {
-            return lum[p.x][p.y];
-        }
-
-        void set_lum( const point &p, uint8_t luminance ) {
-            is_uniform = false;
-            lum[p.x][p.y] = luminance;
         }
 
         void update_lum_add( const point &p, const item &i ) {
@@ -155,24 +128,6 @@ class submap : maptile_soa<SEEX, SEEY>
             if( count <= 256 ) {
                 lum[p.x][p.y] = static_cast<uint8_t>( count - 1 );
             }
-        }
-
-        // TODO: Replace this as it essentially makes itm public
-        cata::colony<item> &get_items( const point &p ) {
-            return itm[p.x][p.y];
-        }
-
-        const cata::colony<item> &get_items( const point &p ) const {
-            return itm[p.x][p.y];
-        }
-
-        // TODO: Replace this as it essentially makes fld public
-        field &get_field( const point &p ) {
-            return fld[p.x][p.y];
-        }
-
-        const field &get_field( const point &p ) const {
-            return fld[p.x][p.y];
         }
 
         struct cosmetic_t {
@@ -215,18 +170,12 @@ class submap : maptile_soa<SEEX, SEEY>
         // Can be used anytime (prevents code from needing to place sign first.)
         void delete_signage( const point &p );
 
-        bool has_computer( const point &p ) const;
-        const computer *get_computer( const point &p ) const;
-        computer *get_computer( const point &p );
-        void set_computer( const point &p, const computer &c );
-        void delete_computer( const point &p );
-
         bool contains_vehicle( vehicle * );
 
         void rotate( int turns );
 
         void store( JsonOut &jsout ) const;
-        void load( JsonIn &jsin, const std::string &member_name, int version );
+        void load( JsonIn &jsin, const std::string &member_name, bool rubpow_update );
 
         // If is_uniform is true, this submap is a solid block of terrain
         // Uniform submaps aren't saved/loaded, because regenerating them is faster
@@ -246,16 +195,11 @@ class submap : maptile_soa<SEEX, SEEY>
          */
         std::vector<std::unique_ptr<vehicle>> vehicles;
         std::map<tripoint, partial_con> partial_constructions;
-        std::unique_ptr<basecamp> camp;  // only allowing one basecamp per submap
+        std::unique_ptr<computer> comp;
+        basecamp camp;  // only allowing one basecamp per submap
 
     private:
-        std::map<point, computer> computers;
-        std::unique_ptr<computer> legacy_computer;
         int temperature = 0;
-
-        void update_legacy_computer();
-
-        static constexpr size_t elements = SEEX * SEEY;
 };
 
 /**
@@ -303,16 +247,16 @@ struct maptile {
         }
 
         const field &get_field() const {
-            return sm->get_field( pos() );
+            return sm->fld[x][y];
         }
 
-        field_entry *find_field( const field_type_id &field_to_find ) {
-            return sm->get_field( pos() ).find_field( field_to_find );
+        field_entry *find_field( const field_type_id field_to_find ) {
+            return sm->fld[x][y].find_field( field_to_find );
         }
 
-        bool add_field( const field_type_id &field_to_add, const int new_intensity,
+        bool add_field( const field_type_id field_to_add, const int new_intensity,
                         const time_duration &new_age ) {
-            const bool ret = sm->get_field( pos() ).add_field( field_to_add, new_intensity, new_age );
+            const bool ret = sm->fld[x][y].add_field( field_to_add, new_intensity, new_age );
             if( ret ) {
                 sm->field_count++;
             }
@@ -342,13 +286,13 @@ struct maptile {
 
         // For map::draw_maptile
         size_t get_item_count() const {
-            return sm->get_items( pos() ).size();
+            return sm->itm[x][y].size();
         }
 
         // Assumes there is at least one item
         const item &get_uppermost_item() const {
-            return *std::prev( sm->get_items( pos() ).cend() );
+            return *std::prev( sm->itm[x][y].cend() );
         }
 };
 
-#endif // CATA_SRC_SUBMAP_H
+#endif

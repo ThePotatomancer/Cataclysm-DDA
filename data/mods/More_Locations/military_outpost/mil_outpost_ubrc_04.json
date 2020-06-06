@@ -2,7 +2,7 @@
   {
     "type": "mapgen",
     "om_terrain": [ "mil_outpost_ubrc" ],
-    "//": "underground bottom right corner",
+    "comment": "underground bottom right corner",
     "method": "json",
     "weight": 250,
     "object": {
@@ -35,7 +35,7 @@
       ],
       "palettes": [ "mil_outpost_underground" ],
       "items": { "$": { "item": "bots", "chance": 60 } },
-      "monster": { "t": { "monster": "mon_turret_rifle" } },
+      "monster": { "t": { "monster": "mon_turret" } },
       "vehicles": { "v": { "vehicle": "swivel_chair", "chance": 100, "fuel": 50, "status": 3 } }
     }
   }

@@ -1,12 +1,12 @@
 #pragma once
-#ifndef CATA_SRC_RNG_H
-#define CATA_SRC_RNG_H
+#ifndef RNG_H
+#define RNG_H
 
 #include <array>
 #include <functional>
+#include <random>
 #include <iosfwd>
 #include <iterator>
-#include <random>
 #include <type_traits>
 
 #include "optional.h"
@@ -24,7 +24,7 @@ cata_default_random_engine &rng_get_engine();
 unsigned int rng_bits();
 
 int rng( int lo, int hi );
-double rng_float( double lo, double hi );
+double rng_float( double val1, double val2 );
 bool one_in( int chance );
 bool one_turn_in( const time_duration &duration );
 bool x_in_y( double x, double y );
@@ -32,10 +32,6 @@ int dice( int number, int sides );
 
 // Returns x + x_in_y( x-int(x), 1 )
 int roll_remainder( double value );
-inline int roll_remainder( float value )
-{
-    return roll_remainder( static_cast<double>( value ) );
-}
 
 int djb2_hash( const unsigned char *input );
 
@@ -160,8 +156,8 @@ inline V random_entry_removed( C &container )
     return result;
 }
 class map;
-class tripoint_range;
 struct tripoint;
+class tripoint_range;
 
 /// Returns a range enclosing all valid points of the map.
 tripoint_range points_in_range( const map &m );
@@ -172,4 +168,4 @@ cata::optional<tripoint> random_point( const tripoint_range &range,
 cata::optional<tripoint> random_point( const map &m,
                                        const std::function<bool( const tripoint & )> &predicate );
 
-#endif // CATA_SRC_RNG_H
+#endif

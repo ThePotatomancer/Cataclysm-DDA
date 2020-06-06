@@ -1,40 +1,27 @@
 [
   {
     "type": "recipe_group",
-    "id": "all_faction_base_types",
+    "name": "all_faction_base_types",
     "building_type": "NONE",
     "recipes": [
       { "id": "faction_base_modular_hub_field_0", "description": "Field Camp", "om_terrains": [ "field" ] },
-      { "id": "faction_base_firestation_0", "description": "Firestation Base", "om_terrains": [ "fire_station" ] },
-      {
-        "id": "faction_base_shelter_0",
-        "description": "Evac Shelter Base",
-        "om_terrains": [ "shelter", "shelter_vandal" ]
-      },
-      {
-        "id": "faction_base_shelter_1_0",
-        "description": "Evac Shelter Base",
-        "om_terrains": [ "shelter_1", "shelter_1_vandal" ]
-      }
+      { "id": "faction_base_camp_0", "description": "Old Camp", "om_terrains": [ "field" ] }
     ]
   },
   {
     "type": "recipe_group",
-    "id": "all_faction_base_expansions",
+    "name": "all_faction_base_expansions",
     "building_type": "NONE",
     "recipes": [
       { "id": "faction_base_farm_0", "description": "Farm", "om_terrains": [ "field" ] },
       { "id": "faction_base_garage_0", "description": "Garage", "om_terrains": [ "field" ] },
-      { "id": "faction_base_canteen_0", "description": "Canteen", "om_terrains": [ "field" ] },
-      { "id": "faction_base_livestock_0", "description": "Livestock Area", "om_terrains": [ "field" ] },
-      { "id": "faction_base_storehouse_0", "description": "Central Storage Building", "om_terrains": [ "field" ] },
-      { "id": "faction_base_saltworks_0", "description": "Saltworks Area", "om_terrains": [ "field" ] },
-      { "id": "faction_base_workshop_0", "description": "Fabrication Workshop", "om_terrains": [ "field" ] }
+      { "id": "faction_base_kitchen_0", "description": "Kitchen", "om_terrains": [ "field" ] },
+      { "id": "faction_base_blacksmith_0", "description": "Blacksmith Shop", "om_terrains": [ "field" ] }
     ]
   },
   {
     "type": "recipe_group",
-    "id": "kitchen_recipes_1",
+    "name": "kitchen_recipes_1",
     "building_type": "COOK",
     "recipes": [
       { "id": "tinder", "description": " Craft: Tinder" },
@@ -49,7 +36,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "kitchen_recipes_2",
+    "name": "kitchen_recipes_2",
     "building_type": "COOK",
     "recipes": [
       { "id": "flour", "description": " Cook: Flour" },
@@ -70,7 +57,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "kitchen_recipes_3",
+    "name": "kitchen_recipes_3",
     "building_type": "COOK",
     "recipes": [
       { "id": "pie_meat", "description": " Cook: Meat Pie" },
@@ -82,13 +69,12 @@
       { "id": "pemmican", "description": " Cook: Pemmican" },
       { "id": "veggy_aspic", "description": " Cook: Veggy Aspic" },
       { "id": "meat_canned_jarred", "description": " Cook: Meat, Canned" },
-      { "id": "meat_aspic", "description": " Cook: Meat Aspic" },
-      { "id": "kompot", "description": " Cook: Kompot" }
+      { "id": "meat_aspic", "description": " Cook: Meat Aspic" }
     ]
   },
   {
     "type": "recipe_group",
-    "id": "primitive_camp_recipes_1",
+    "name": "primitive_camp_recipes_1",
     "building_type": "BASE",
     "recipes": [
       { "id": "tinder", "description": " Craft: Tinder" },
@@ -97,7 +83,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "farm_recipes_1",
+    "name": "farm_recipes_1",
     "building_type": "FARM",
     "recipes": [
       { "id": "seed_veggy_wild", "description": " Craft: Wild Veggy Stems" },
@@ -108,7 +94,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_1",
+    "name": "blacksmith_recipes_1",
     "building_type": "SMITH",
     "recipes": [
       { "id": "scrap_copper", "description": " Craft: Copper, Scrap" },
@@ -123,7 +109,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_2",
+    "name": "blacksmith_recipes_2",
     "building_type": "SMITH",
     "recipes": [
       { "id": "copper_knife", "description": " Craft: Knife, Copper" },
@@ -142,7 +128,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_3",
+    "name": "blacksmith_recipes_3",
     "building_type": "SMITH",
     "recipes": [
       { "id": "chisel", "description": " Craft: Metalworking Chisel" },
@@ -155,7 +141,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_4",
+    "name": "blacksmith_recipes_4",
     "building_type": "SMITH",
     "recipes": [
       { "id": "blade", "description": " Craft: Blade" },
@@ -172,7 +158,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_5",
+    "name": "blacksmith_recipes_5",
     "building_type": "SMITH",
     "recipes": [
       { "id": "knife_combat", "description": " Craft: Knife, Combat" },
@@ -191,7 +177,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_6",
+    "name": "blacksmith_recipes_6",
     "building_type": "SMITH",
     "recipes": [
       { "id": "pliers", "description": " Craft: Pliers" },
@@ -215,7 +201,7 @@
   },
   {
     "type": "recipe_group",
-    "id": "blacksmith_recipes_7",
+    "name": "blacksmith_recipes_7",
     "building_type": "SMITH",
     "recipes": [
       { "id": "sheet_metal_npc_drop", "description": " Craft: Sheet Metal, Drop Hammer" },

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_SRC_TIMED_EVENT_H
-#define CATA_SRC_TIMED_EVENT_H
+#ifndef TIMED_EVENT_H
+#define TIMED_EVENT_H
 
 #include <list>
 
@@ -66,4 +66,4 @@ class timed_event_manager
         void process();
 };
 
-#endif // CATA_SRC_TIMED_EVENT_H
+#endif

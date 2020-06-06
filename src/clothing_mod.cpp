@@ -1,17 +1,11 @@
 #include "clothing_mod.h"
 
-#include <cmath>
-#include <map>
-#include <set>
 #include <string>
-#include <utility>
+#include <set>
 
-#include "debug.h"
-#include "enum_conversions.h"
 #include "generic_factory.h"
 #include "item.h"
-#include "json.h"
-#include "string_id.h"
+#include "debug.h"
 
 namespace
 {
@@ -39,53 +33,74 @@ const clothing_mod &string_id<clothing_mod>::obj() const
 namespace io
 {
 
+static const std::map<std::string, clothing_mod_type> clothing_mod_type_map = {{
+        { "acid", clothing_mod_type_acid },
+        { "fire", clothing_mod_type_fire },
+        { "bash", clothing_mod_type_bash },
+        { "cut", clothing_mod_type_cut },
+        { "encumbrance", clothing_mod_type_encumbrance },
+        { "warmth", clothing_mod_type_warmth },
+        { "storage", clothing_mod_type_storage },
+        { "invalid", clothing_mod_type_invalid }
+    }
+};
+
+template<>
+clothing_mod_type string_to_enum<clothing_mod_type>( const std::string &data )
+{
+    auto iter = clothing_mod_type_map.find( data );
+
+    if( iter == clothing_mod_type_map.end() ) {
+        debugmsg( "Invalid mod type '%s'.", data );
+        return clothing_mod_type_invalid;
+    }
+
+    return string_to_enum_look_up( clothing_mod_type_map, data );
+}
+
 template<>
 std::string enum_to_string<clothing_mod_type>( clothing_mod_type data )
 {
-    switch( data ) {
-        // *INDENT-OFF*
-        case clothing_mod_type_acid: return "acid";
-        case clothing_mod_type_fire: return "fire";
-        case clothing_mod_type_bash: return "bash";
-        case clothing_mod_type_cut: return "cut";
-        case clothing_mod_type_bullet: return "bullet";
-        case clothing_mod_type_encumbrance: return "encumbrance";
-        case clothing_mod_type_warmth: return "warmth";
-        case clothing_mod_type_storage: return "storage";
-        case clothing_mod_type_invalid: return "invalid";
-        // *INDENT-ON*
-        case num_clothing_mod_types:
-            break;
+    const auto iter = std::find_if( clothing_mod_type_map.begin(), clothing_mod_type_map.end(),
+    [data]( const std::pair<std::string, clothing_mod_type> &pr ) {
+        return pr.second == data;
+    } );
+
+    if( iter == clothing_mod_type_map.end() ) {
+        debugmsg( "Invalid mod type value '%d'.", data );
+        return "invalid";
     }
-    debugmsg( "Invalid mod type value '%d'.", data );
-    return "invalid";
+
+    return iter->first;
 }
 
 } // namespace io
 
-void clothing_mod::load( const JsonObject &jo, const std::string & )
+void clothing_mod::load( JsonObject &jo, const std::string & )
 {
     mandatory( jo, was_loaded, "flag", flag );
     mandatory( jo, was_loaded, "item", item_string );
     mandatory( jo, was_loaded, "implement_prompt", implement_prompt );
     mandatory( jo, was_loaded, "destroy_prompt", destroy_prompt );
-    optional( jo, was_loaded, "restricted", restricted, false );
 
-    for( const JsonObject mv_jo : jo.get_array( "mod_value" ) ) {
+    JsonArray jarr = jo.get_array( "mod_value" );
+    while( jarr.has_more() ) {
+        JsonObject mv_jo = jarr.next_object();
         mod_value mv;
         std::string temp_str;
         mandatory( mv_jo, was_loaded, "type", temp_str );
         mv.type = io::string_to_enum<clothing_mod_type>( temp_str );
         mandatory( mv_jo, was_loaded, "value", mv.value );
         optional( mv_jo, was_loaded, "round_up", mv.round_up );
-        for( const JsonValue entry : mv_jo.get_array( "proportion" ) ) {
-            const std::string &str = entry.get_string();
+        JsonArray jarr_prop = mv_jo.get_array( "proportion" );
+        while( jarr_prop.has_more() ) {
+            std::string str = jarr_prop.next_string();
             if( str == "thickness" ) {
                 mv.thickness_propotion = true;
             } else if( str == "coverage" ) {
                 mv.coverage_propotion = true;
             } else {
-                entry.throw_error( R"(Invalid value, valid are: "coverage" and "thickness")" );
+                jarr_prop.throw_error( "Invalid value, valid are: \"coverage\" and \"thickness\"" );
             }
         }
         mod_values.push_back( mv );
@@ -130,7 +145,7 @@ size_t clothing_mod::count()
     return all_clothing_mods.size();
 }
 
-void clothing_mods::load( const JsonObject &jo, const std::string &src )
+void clothing_mods::load( JsonObject &jo, const std::string &src )
 {
     all_clothing_mods.load( jo, src );
 }
