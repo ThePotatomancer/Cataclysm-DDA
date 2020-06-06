@@ -1,6 +1,6 @@
 #pragma once
-#ifndef PANELS_H
-#define PANELS_H
+#ifndef CATA_SRC_PANELS_H
+#define CATA_SRC_PANELS_H
 
 #include <cstddef>
 #include <functional>
@@ -12,6 +12,7 @@ class avatar;
 class JsonIn;
 class JsonOut;
 
+struct point;
 struct tripoint;
 
 namespace catacurses
@@ -29,8 +30,8 @@ enum face_type : int {
 namespace overmap_ui
 {
 void draw_overmap_chunk( const catacurses::window &w_minimap, const avatar &you,
-                         const tripoint &global_omt, const int start_y, const int start_x, const int width,
-                         const int height );
+                         const tripoint &global_omt, const point &start, int width,
+                         int height );
 } // namespace overmap_ui
 
 bool default_render();
@@ -39,7 +40,7 @@ class window_panel
 {
     public:
         window_panel( std::function<void( avatar &, const catacurses::window & )> draw_func,
-                      const std::string &nm, int ht, int wd, bool default_toggle,
+                      const std::string &nm, int ht, int wd, bool default_toggle_,
                       std::function<bool()> render_func = default_render, bool force_draw = false );
 
         std::function<void( avatar &, const catacurses::window & )> draw;
@@ -78,7 +79,7 @@ class panel_manager
         int get_width_right();
         int get_width_left();
 
-        void draw_adm( const catacurses::window &w, size_t column = 0, size_t index = 1 );
+        void show_adm();
 
         void init();
 
@@ -98,4 +99,4 @@ class panel_manager
 
 };
 
-#endif //PANELS_H
+#endif // CATA_SRC_PANELS_H

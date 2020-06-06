@@ -1,6 +1,6 @@
 #pragma once
-#ifndef TELEPORTER_LIST_H
-#define TELEPORTER_LIST_H
+#ifndef CATA_SRC_MAGIC_TELEPORTER_LIST_H
+#define CATA_SRC_MAGIC_TELEPORTER_LIST_H
 
 #include <map>
 #include <set>
@@ -25,7 +25,7 @@ class teleporter_list
         // does not do any loading or unloading
         bool place_avatar_overmap( avatar &you, const tripoint &omt_pt ) const;
     public:
-        bool knows_translocator( const tripoint &omt_pt ) const;
+        bool knows_translocator( const tripoint &omt_pos ) const;
         // adds teleporter to known_teleporters and does any other activation necessary
         bool activate_teleporter( const tripoint &omt_pt, const tripoint &local_pt );
         void deactivate_teleporter( const tripoint &omt_pt, const tripoint &local_pt );
@@ -38,4 +38,4 @@ class teleporter_list
         void deserialize( JsonIn &jsin );
 };
 
-#endif // !TELEPORTER_LIST_H
+#endif // CATA_SRC_MAGIC_TELEPORTER_LIST_H

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef VISITABLE_H
-#define VISITABLE_H
+#ifndef CATA_SRC_VISITABLE_H
+#define CATA_SRC_VISITABLE_H
 
 #include <climits>
 #include <functional>
@@ -13,7 +13,7 @@
 
 class item;
 
-enum class VisitResponse {
+enum class VisitResponse : int {
     ABORT, // Stop processing after this node
     NEXT,  // Descend vertically to any child nodes and then horizontally to next sibling
     SKIP   // Skip any child nodes and move directly to the next sibling
@@ -74,9 +74,11 @@ class visitable
          * @param what ID of item to count charges of
          * @param limit stop searching after this many charges have been found
          * @param filter only count charges of items that match the filter
+         * @param visitor is called when UPS charge is used (parameter is the charge itself)
          */
-        int charges_of( const std::string &what, int limit = INT_MAX,
-                        const std::function<bool( const item & )> &filter = return_true<item> ) const;
+        int charges_of( const itype_id &what, int limit = INT_MAX,
+                        const std::function<bool( const item & )> &filter = return_true<item>,
+                        const std::function<void( int )> &visitor = nullptr ) const;
 
         /**
          * Count items matching id including both this instance and any contained items
@@ -86,12 +88,12 @@ class visitable
          * @param filter only count items that match the filter
          * @note items must be empty to be considered a match
          */
-        int amount_of( const std::string &what, bool pseudo = true,
+        int amount_of( const itype_id &what, bool pseudo = true,
                        int limit = INT_MAX,
                        const std::function<bool( const item & )> &filter = return_true<item> ) const;
 
         /** Check instance provides at least qty of an item (@see amount_of) */
-        bool has_amount( const std::string &what, int qty, bool pseudo = true,
+        bool has_amount( const itype_id &what, int qty, bool pseudo = true,
                          const std::function<bool( const item & )> &filter = return_true<item> ) const;
 
         /** Returns all items (including those within a container) matching the filter */
@@ -112,4 +114,4 @@ class visitable
         item remove_item( item &it );
 };
 
-#endif
+#endif // CATA_SRC_VISITABLE_H

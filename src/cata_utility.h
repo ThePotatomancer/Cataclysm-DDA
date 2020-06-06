@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CATA_UTILITY_H
-#define CATA_UTILITY_H
+#ifndef CATA_SRC_CATA_UTILITY_H
+#define CATA_SRC_CATA_UTILITY_H
 
 #include <fstream>
 #include <functional>
@@ -14,6 +14,7 @@
 
 class JsonIn;
 class JsonOut;
+class translation;
 
 /**
  * Greater-than comparison operator; required by the sort interface
@@ -107,6 +108,7 @@ bool isBetween( int test, int down, int up );
  *         string, otherwise returns false
  */
 bool lcmatch( const std::string &str, const std::string &qry );
+bool lcmatch( const translation &str, const std::string &qry );
 
 /**
  * Matches text case insensitive with the include/exclude rules of the filter
@@ -178,7 +180,7 @@ int bound_mod_to_vals( int val, int mod, int max, int min );
  *
  * @return name of unit.
  */
-const char *velocity_units( const units_type vel_units );
+const char *velocity_units( units_type vel_units );
 
 /**
  * Create a units label for a weight value.
@@ -219,7 +221,7 @@ const char *volume_units_long();
  * @returns Velocity in the user selected measurement system and in appropriate
  *          units for the object being measured.
  */
-double convert_velocity( int velocity, const units_type vel_units );
+double convert_velocity( int velocity, units_type vel_units );
 
 /**
  * Convert weight in grams to units defined by user (kg or lbs)
@@ -231,6 +233,18 @@ double convert_velocity( int velocity, const units_type vel_units );
 double convert_weight( const units::mass &weight );
 
 /**
+ * converts length to largest unit available
+ * 1000 mm = 1 meter for example
+ * assumed to be used in conjunction with unit string functions
+ * also works for imperial units
+ */
+int convert_length( const units::length &length );
+std::string length_units( const units::length &length );
+
+/** convert a mass unit to a string readable by a human */
+std::string weight_to_string( const units::mass &weight );
+
+/**
  * Convert volume from ml to units defined by user.
  */
 double convert_volume( int volume );
@@ -240,6 +254,9 @@ double convert_volume( int volume );
  * optionally returning the units preferred scale.
  */
 double convert_volume( int volume, int *out_scale );
+
+/** convert a volume unit to a string readable by a human */
+std::string vol_to_string( const units::volume &vol );
 
 /**
  * Convert a temperature from degrees Fahrenheit to degrees Celsius.
@@ -338,7 +355,8 @@ class list_circularizer
 
         /** Return list element at the current location */
         T &cur() const {
-            return ( *_list )[_index]; // list could be null, but it would be a design time mistake and really, the callers fault.
+            // list could be null, but it would be a design time mistake and really, the callers fault.
+            return ( *_list )[_index];
         }
 };
 
@@ -445,7 +463,7 @@ std::istream &safe_getline( std::istream &ins, std::string &str );
  *
  */
 
-std::string obscure_message( const std::string &str, std::function<char()> f );
+std::string obscure_message( const std::string &str, const std::function<char()> &f );
 
 /**
  * @group JSON (de)serialization wrappers.
@@ -504,4 +522,45 @@ bool return_true( const T & )
  * Joins a vector of `std::string`s into a single string with a delimiter/joiner
  */
 std::string join( const std::vector<std::string> &strings, const std::string &joiner );
-#endif // CAT_UTILITY_H
+
+int modulo( int v, int m );
+
+class on_out_of_scope
+{
+    private:
+        std::function<void()> func;
+    public:
+        on_out_of_scope( const std::function<void()> &func ) : func( func ) {
+        }
+
+        ~on_out_of_scope() {
+            if( func ) {
+                func();
+            }
+        }
+
+        void cancel() {
+            func = nullptr;
+        }
+};
+
+template<typename T>
+class restore_on_out_of_scope
+{
+    private:
+        T &t;
+        T orig_t;
+        on_out_of_scope impl;
+    public:
+        // *INDENT-OFF*
+        restore_on_out_of_scope( T &t_in ) : t( t_in ), orig_t( t_in ),
+            impl( [this]() { t = std::move( orig_t ); } ) {
+        }
+
+        restore_on_out_of_scope( T &&t_in ) : t( t_in ), orig_t( std::move( t_in ) ),
+            impl( [this]() { t = std::move( orig_t ); } ) {
+        }
+        // *INDENT-ON*
+};
+
+#endif // CATA_SRC_CATA_UTILITY_H

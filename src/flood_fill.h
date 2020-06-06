@@ -1,12 +1,13 @@
 #pragma once
-#ifndef FLOOD_FILL_H
-#define FLOOD_FILL_H
+#ifndef CATA_SRC_FLOOD_FILL_H
+#define CATA_SRC_FLOOD_FILL_H
 
 #include <queue>
 #include <vector>
 #include <unordered_set>
 
 #include "enums.h"
+#include "point.h"
 
 namespace ff
 {
@@ -40,10 +41,10 @@ std::vector<point> point_flood_fill_4_connected( const point &starting_point,
 
         if( predicate( current_point ) ) {
             filled_points.emplace_back( current_point );
-            to_check.push( point( current_point.x, current_point.y + 1 ) );
-            to_check.push( point( current_point.x, current_point.y - 1 ) );
-            to_check.push( point( current_point.x + 1, current_point.y ) );
-            to_check.push( point( current_point.x - 1, current_point.y ) );
+            to_check.push( current_point + point_south );
+            to_check.push( current_point + point_north );
+            to_check.push( current_point + point_east );
+            to_check.push( current_point + point_west );
         }
     }
 
@@ -51,4 +52,4 @@ std::vector<point> point_flood_fill_4_connected( const point &starting_point,
 }
 } // namespace ff
 
-#endif
+#endif // CATA_SRC_FLOOD_FILL_H

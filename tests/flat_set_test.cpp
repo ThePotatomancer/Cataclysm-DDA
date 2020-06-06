@@ -100,8 +100,10 @@ TEST_CASE( "flat_set_std_inserter", "[flat_set]" )
 TEST_CASE( "flat_set_comparison", "[flat_set]" )
 {
     using int_set = cata::flat_set<int>;
+    // NOLINTNEXTLINE(readability-container-size-empty)
     CHECK( int_set{} == int_set{} );
     CHECK( int_set{ 0 } == int_set{ 0 } );
+    // NOLINTNEXTLINE(readability-container-size-empty)
     CHECK( int_set{} != int_set{ 0 } );
     CHECK( int_set{ 0 } != int_set{ 1 } );
     CHECK( int_set{} < int_set{ 0 } );
@@ -121,8 +123,8 @@ struct int_like {
     friend bool operator op( int_like l, int_like r ) { \
         return l.i op r.i; \
     }
-    INT_LIKE_OPERATOR( == );
-    INT_LIKE_OPERATOR( < );
+    INT_LIKE_OPERATOR( == )
+    INT_LIKE_OPERATOR( < )
 };
 
 TEST_CASE( "flat_set_transparent_lookup", "[flat_set]" )

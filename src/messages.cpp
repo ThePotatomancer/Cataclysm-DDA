@@ -1,20 +1,24 @@
 #include "messages.h"
 
 #include "calendar.h"
+#include "catacharset.h"
+#include "color.h"
 // needed for the workaround for the std::to_string bug in some compilers
 #include "compatibility.h" // IWYU pragma: keep
+#include "cursesdef.h"
 #include "debug.h"
+#include "enums.h"
 #include "game.h"
+#include "ime.h"
 #include "input.h"
 #include "json.h"
+#include "optional.h"
 #include "output.h"
+#include "point.h"
 #include "string_formatter.h"
 #include "string_input_popup.h"
 #include "translations.h"
-#include "catacharset.h"
-#include "color.h"
-#include "cursesdef.h"
-#include "enums.h"
+#include "ui_manager.h"
 
 #if defined(__ANDROID__)
 #include <SDL_keyboard.h>
@@ -22,11 +26,10 @@
 #include "options.h"
 #endif
 
+#include <algorithm>
 #include <deque>
 #include <iterator>
-#include <algorithm>
 #include <memory>
-#include <sstream>
 
 // sidebar messages flow direction
 extern bool log_from_top;
@@ -173,7 +176,7 @@ class messages_impl
 
         void add_msg_string( std::string &&msg, game_message_type const type,
                              const game_message_flags flags ) {
-            if( msg.length() == 0 || !active ) {
+            if( msg.empty() || !active ) {
                 return;
             }
 
@@ -327,7 +330,7 @@ void Messages::serialize( JsonOut &json )
     json.end_object();
 }
 
-void Messages::deserialize( JsonObject &json )
+void Messages::deserialize( const JsonObject &json )
 {
     if( !json.has_member( "player_messages" ) ) {
         return;
@@ -405,7 +408,7 @@ class dialog
         dialog();
         void run();
     private:
-        void init();
+        void init( ui_adaptor &ui );
         void show();
         void input();
         void do_filter( const std::string &filter_str );
@@ -426,20 +429,27 @@ class dialog
         //        time_width       msg_width
         static constexpr int border_width = 1;
         static constexpr int padding_width = 1;
-        int time_width, msg_width;
+        int time_width = 0;
+        int msg_width = 0;
 
-        size_t max_lines; // Max number of lines the window can show at once
+        size_t max_lines = 0; // Max number of lines the window can show at once
 
-        int w_x, w_y, w_width, w_height; // Main window position
+        int w_x = 0;
+        int w_y = 0;
+        int w_width = 0;
+        int w_height = 0; // Main window position
         catacurses::window w; // Main window
 
-        int w_fh_x, w_fh_y, w_fh_width, w_fh_height; // Filter help window position
+        int w_fh_x = 0;
+        int w_fh_y = 0;
+        int w_fh_width = 0;
+        int w_fh_height = 0; // Filter help window position
         catacurses::window w_filter_help; // Filter help window
 
         std::vector<std::string> help_text; // Folded filter help text
 
         string_input_popup filter;
-        bool filtering;
+        bool filtering = false;
         std::string filter_str;
 
         input_context ctxt;
@@ -449,10 +459,14 @@ class dialog
         // Indices of filtered messages
         std::vector<size_t> folded_filtered;
 
-        size_t offset; // Index of the first printed message
+        size_t offset = 0; // Index of the first printed message
 
-        bool canceled;
-        bool errored;
+        bool canceled = false;
+        bool errored = false;
+
+        cata::optional<ime_sentry> filter_sentry;
+
+        bool first_init = true;
 };
 } // namespace Messages
 
@@ -461,36 +475,36 @@ Messages::dialog::dialog()
       time_color( c_light_blue ), bracket_color( c_dark_gray ),
       filter_help_color( c_cyan )
 {
-    init();
 }
 
-void Messages::dialog::init()
+void Messages::dialog::init( ui_adaptor &ui )
 {
     w_width = std::min( TERMX, FULL_SCREEN_WIDTH );
     w_height = std::min( TERMY, FULL_SCREEN_HEIGHT );
     w_x = ( TERMX - w_width ) / 2;
     w_y = ( TERMY - w_height ) / 2;
 
-    w = catacurses::newwin( w_height, w_width, w_y, w_x );
+    w = catacurses::newwin( w_height, w_width, point( w_x, w_y ) );
 
-    ctxt = input_context( "MESSAGE_LOG" );
-    ctxt.register_action( "UP", translate_marker( "Scroll up" ) );
-    ctxt.register_action( "DOWN", translate_marker( "Scroll down" ) );
-    ctxt.register_action( "PAGE_UP" );
-    ctxt.register_action( "PAGE_DOWN" );
-    ctxt.register_action( "FILTER" );
-    ctxt.register_action( "RESET_FILTER" );
-    ctxt.register_action( "QUIT" );
-    ctxt.register_action( "HELP_KEYBINDINGS" );
+    if( first_init ) {
+        ctxt = input_context( "MESSAGE_LOG" );
+        ctxt.register_action( "UP", to_translation( "Scroll up" ) );
+        ctxt.register_action( "DOWN", to_translation( "Scroll down" ) );
+        ctxt.register_action( "PAGE_UP" );
+        ctxt.register_action( "PAGE_DOWN" );
+        ctxt.register_action( "FILTER" );
+        ctxt.register_action( "RESET_FILTER" );
+        ctxt.register_action( "QUIT" );
+        ctxt.register_action( "HELP_KEYBINDINGS" );
 
-    // Calculate time string display width. The translated strings are expected to
-    // be aligned, so we choose an arbitrary duration here to calculate the width.
-    time_width = utf8_width( to_string_clipped( 1_turns, clipped_align::right ) );
+        // Calculate time string display width. The translated strings are expected to
+        // be aligned, so we choose an arbitrary duration here to calculate the width.
+        time_width = utf8_width( to_string_clipped( 1_turns, clipped_align::right ) );
+    }
 
     if( border_width * 2 + time_width + padding_width >= w_width ||
         border_width * 2 >= w_height ) {
 
-        debugmsg( "No enough space for the message window" );
         errored = true;
         return;
     }
@@ -503,11 +517,11 @@ void Messages::dialog::init()
     help_text = filter_help_text( w_fh_width - border_width * 2 );
     w_fh_height = help_text.size() + border_width * 2;
     w_fh_y = w_y + w_height - w_fh_height;
-    w_filter_help = catacurses::newwin( w_fh_height, w_fh_width, w_fh_y, w_fh_x );
+    w_filter_help = catacurses::newwin( w_fh_height, w_fh_width, point( w_fh_x, w_fh_y ) );
 
     // Initialize filter input
-    filter.window( w_filter_help, border_width + 2, w_fh_height - 1, w_fh_width - border_width - 2 );
-    filtering = false;
+    filter.window( w_filter_help, point( border_width + 2, w_fh_height - 1 ),
+                   w_fh_width - border_width - 2 );
 
     // Initialize folded messages
     folded_all.clear();
@@ -523,15 +537,11 @@ void Messages::dialog::init()
         }
     }
 
-    // Initialize scrolling offset
-    if( log_from_top || max_lines > folded_filtered.size() ) {
-        offset = 0;
-    } else {
-        offset = folded_filtered.size() - max_lines;
-    }
+    do_filter( filter_str );
 
-    canceled = false;
-    errored = false;
+    ui.position_from_window( w );
+
+    first_init = false;
 }
 
 void Messages::dialog::show()
@@ -574,7 +584,7 @@ void Messages::dialog::show()
         nc_color col = msgtype_to_color( msg.type, false );
 
         // Print current line
-        print_colored_text( w, border_width + line, border_width + time_width + padding_width,
+        print_colored_text( w, point( border_width + time_width + padding_width, border_width + line ),
                             col, col, folded_all[folded_filtered[folded_ind]].second );
 
         // Generate aligned time string
@@ -592,11 +602,11 @@ void Messages::dialog::show()
             if( printing_range ) {
                 const size_t last_line = log_from_top ? line - 1 : line + 1;
                 wattron( w, bracket_color );
-                mvwaddch( w, border_width + last_line, border_width + time_width - 1, LINE_XOXO );
+                mvwaddch( w, point( border_width + time_width - 1, border_width + last_line ), LINE_XOXO );
                 wattroff( w, bracket_color );
             }
             wattron( w, bracket_color );
-            mvwaddch( w, border_width + line, border_width + time_width - 1,
+            mvwaddch( w, point( border_width + time_width - 1, border_width + line ),
                       log_from_top ? LINE_XXOO : LINE_OXXO );
             wattroff( w, bracket_color );
             printing_range = true;
@@ -615,22 +625,24 @@ void Messages::dialog::show()
         draw_border( w_filter_help, border_color );
         for( size_t line = 0; line < help_text.size(); ++line ) {
             nc_color col = filter_help_color;
-            print_colored_text( w_filter_help, border_width + line, border_width, col, col,
+            print_colored_text( w_filter_help, point( border_width, border_width + line ), col, col,
                                 help_text[line] );
         }
-        mvwprintz( w_filter_help, w_fh_height - 1, border_width, border_color, "< " );
-        mvwprintz( w_filter_help, w_fh_height - 1, w_fh_width - border_width - 2, border_color, " >" );
+        mvwprintz( w_filter_help, point( border_width, w_fh_height - 1 ), border_color, "< " );
+        mvwprintz( w_filter_help, point( w_fh_width - border_width - 2, w_fh_height - 1 ), border_color,
+                   " >" );
         wrefresh( w_filter_help );
 
         // This line is preventing this method from being const
         filter.query( false, true ); // Draw only
     } else {
         if( filter_str.empty() ) {
-            mvwprintz( w, w_height - 1, border_width, border_color, _( "< Press %s to filter, %s to reset >" ),
+            mvwprintz( w, point( border_width, w_height - 1 ), border_color,
+                       _( "< Press %s to filter, %s to reset >" ),
                        ctxt.get_desc( "FILTER" ), ctxt.get_desc( "RESET_FILTER" ) );
         } else {
-            mvwprintz( w, w_height - 1, border_width, border_color, "< %s >", filter_str );
-            mvwprintz( w, w_height - 1, border_width + 2, filter_color, "%s", filter_str );
+            mvwprintz( w, point( border_width, w_height - 1 ), border_color, "< %s >", filter_str );
+            mvwprintz( w, point( border_width + 2, w_height - 1 ), filter_color, "%s", filter_str );
         }
         wrefresh( w );
     }
@@ -681,6 +693,9 @@ void Messages::dialog::input()
         filter.query( false );
         if( filter.confirmed() || filter.canceled() ) {
             filtering = false;
+            if( filter_sentry ) {
+                disable_ime();
+            }
         }
         if( !filter.canceled() ) {
             const std::string &new_filter_str = filter.text();
@@ -714,11 +729,13 @@ void Messages::dialog::input()
             }
         } else if( action == "FILTER" ) {
             filtering = true;
-#if defined(__ANDROID__)
-            if( get_option<bool>( "ANDROID_AUTO_KEYBOARD" ) ) {
-                SDL_StartTextInput();
+            if( filter_sentry ) {
+                enable_ime();
+            } else {
+                // this implies enable_ime() and ensures that the ime mode is always
+                // restored when closing the dialog if at least filtered once
+                filter_sentry.emplace();
             }
-#endif
         } else if( action == "RESET_FILTER" ) {
             filter_str.clear();
             filter.text( filter_str );
@@ -731,8 +748,17 @@ void Messages::dialog::input()
 
 void Messages::dialog::run()
 {
-    while( !errored && !canceled ) {
+    ui_adaptor ui;
+    ui.on_screen_resize( [this]( ui_adaptor & ui ) {
+        init( ui );
+    } );
+    ui.mark_resize();
+    ui.on_redraw( [this]( const ui_adaptor & ) {
         show();
+    } );
+
+    while( !errored && !canceled ) {
+        ui_manager::redraw();
         input();
     }
 }
@@ -740,13 +766,17 @@ void Messages::dialog::run()
 std::vector<std::string> Messages::dialog::filter_help_text( int width )
 {
     const auto &help_fmt = _(
-                               "Format is [[TYPE]:]TEXT. The values for TYPE are: %s\n"
-                               "Examples:\n"
-                               "  good:mutation\n"
-                               "  :you pick up: 1\n"
-                               "  crash!\n"
+                               "<color_light_gray>The default is to search the entire message log.  "
+                               "Use message-types as prefixes followed by (:) to filter more specific.\n"
+                               "Valid message-type values are:</color> %s\n"
+                               "\n"
+                               "<color_white>Examples:</color>\n"
+                               "  <color_light_green>good</color><color_white>:mutation\n"
+                               "  :you pick up: 1</color>\n"
+                               "  <color_light_red>bad</color><color_white>:</color>\n"
+                               "\n"
                            );
-    std::stringstream type_text;
+    std::string type_text;
     const auto &type_list = msg_type_and_names();
     for( auto it = type_list.begin(); it != type_list.end(); ++it ) {
         // Skip m_debug outside debug mode (but allow searching for it)
@@ -759,16 +789,16 @@ std::vector<std::string> Messages::dialog::filter_help_text( int width )
             }
             if( next_it != type_list.end() ) {
                 //~ the 2nd %s is a type name, this is used to format a list of type names
-                type_text << string_format( pgettext( "message log", "<color_%s>%s</color>, " ),
+                type_text += string_format( pgettext( "message log", "<color_%s>%s</color>, " ),
                                             col_name, pgettext( "message type", it->second ) );
             } else {
                 //~ the 2nd %s is a type name, this is used to format the last type name in a list of type names
-                type_text << string_format( pgettext( "message log", "<color_%s>%s</color>." ),
+                type_text += string_format( pgettext( "message log", "<color_%s>%s</color>." ),
                                             col_name, pgettext( "message type", it->second ) );
             }
         }
     }
-    return foldstring( string_format( help_fmt, type_text.str() ), width );
+    return foldstring( string_format( help_fmt, type_text ), width );
 }
 
 void Messages::display_messages()
@@ -813,7 +843,7 @@ void Messages::display_messages( const catacurses::window &ipk_target, const int
                 // messages will not be missed by screen readers
                 wredrawln( ipk_target, line, 1 );
                 nc_color col_out = col;
-                print_colored_text( ipk_target, line++, left, col_out, col, folded );
+                print_colored_text( ipk_target, point( left, line++ ), col_out, col, folded );
             }
         }
     } else {
@@ -846,7 +876,7 @@ void Messages::display_messages( const catacurses::window &ipk_target, const int
                 // messages will not be missed by screen readers
                 wredrawln( ipk_target, line, 1 );
                 nc_color col_out = col;
-                print_colored_text( ipk_target, line, left, col_out, col, *string_iter );
+                print_colored_text( ipk_target, point( left, line ), col_out, col, *string_iter );
             }
         }
     }

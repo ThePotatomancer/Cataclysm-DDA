@@ -21,8 +21,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 #pragma once
-#ifndef LIST_H
-#define LIST_H
+#ifndef CATA_SRC_LIST_H
+#define CATA_SRC_LIST_H
 
 #define LIST_BLOCK_MIN static_cast<group_size_type>((sizeof(node) * 8 > (sizeof(*this) + sizeof(group)) * 2) ? 8 : (((sizeof(*this) + sizeof(group)) * 2) / sizeof(node)) + 1)
 #define LIST_BLOCK_MAX 2048
@@ -108,8 +108,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
         struct node_base {
             node_pointer_type next, previous;
 
-            node_base()
-            {}
+            node_base() = default;
 
             node_base( const node_pointer_type &n, const node_pointer_type &p ):
                 next( n ),
@@ -204,7 +203,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                 group_pointer_type last_endpoint_group, block_pointer, last_searched_group;
                 size_type size;
 
-                struct ebco_pair2 : allocator_type { // empty-base-class optimisation
+                struct ebco_pair2 : allocator_type { // empty-base-class optimization
                     size_type capacity; // Total element capacity of all initialized groups
                     explicit ebco_pair2( const size_type number_of_elements ) noexcept: capacity(
                             number_of_elements ) {}
@@ -250,6 +249,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
 
                 group_vector &operator = ( group_vector &&source ) noexcept {
                     if LIST_CONSTEXPR( std::is_trivial<group_pointer_type>::value ) {
+                        // NOLINTNEXTLINE(bugprone-undefined-memory-manipulation)
                         std::memcpy( static_cast<void *>( this ), &source, sizeof( group_vector ) );
                     } else {
                         last_endpoint_group = std::move( source.last_endpoint_group );
@@ -264,8 +264,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                     return *this;
                 }
 
-                ~group_vector() noexcept
-                {}
+                ~group_vector() noexcept = default;
 
                 void destroy_all_data( const node_pointer_type last_endpoint_node ) noexcept {
                     if( block_pointer == nullptr ) {
@@ -372,7 +371,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
 
                     if LIST_CONSTEXPR( std::is_trivially_copyable<node_pointer_type>::value &&
                                        std::is_trivially_destructible<node_pointer_type>::value ) {
-                        // Dereferencing here in order to deal with smart pointer situations ie. obtaining the raw pointer from the smart pointer
+                        // Dereferencing here in order to deal with smart pointer situations i.e. obtaining the raw pointer from the smart pointer
                         // reinterpret_cast necessary to deal with GCC 8 warnings
                         std::memcpy( static_cast<void *>( &*block_pointer ), static_cast<void *>( &*old_block ),
                                      sizeof( group ) * size );
@@ -380,7 +379,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                         std::uninitialized_copy( std::make_move_iterator( old_block ),
                                                  std::make_move_iterator( old_block + size ), block_pointer );
                     } else {
-                        // If allocator supplies non-trivial pointers it becomes necessary to destroy the group. uninitialized_copy will not work in this context as the copy constructor for "group" is overriden in C++03/98. The = operator for "group" has been overriden to make the following work:
+                        // If allocator supplies non-trivial pointers it becomes necessary to destroy the group. uninitialized_copy will not work in this context as the copy constructor for "group" is overridden in C++03/98. The = operator for "group" has been overridden to make the following work:
                         const group_pointer_type beyond_end = old_block + size;
                         group_pointer_type current_new_group = block_pointer;
 
@@ -782,7 +781,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                 }
 
                 inline LIST_FORCE_INLINE list_iterator &operator++() noexcept {
-                    assert( node_pointer != nullptr ); // covers uninitialised list_iterator
+                    assert( node_pointer != nullptr ); // covers uninitialized list_iterator
                     node_pointer = node_pointer->next;
                     return *this;
                 }
@@ -794,7 +793,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                 }
 
                 inline LIST_FORCE_INLINE list_iterator &operator--() noexcept {
-                    assert( node_pointer != nullptr ); // covers uninitialised list_iterator
+                    assert( node_pointer != nullptr ); // covers uninitialized list_iterator
                     node_pointer = node_pointer->previous;
                     return *this;
                 }
@@ -886,7 +885,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                 }
 
                 inline LIST_FORCE_INLINE list_reverse_iterator &operator++() noexcept {
-                    assert( node_pointer != nullptr ); // covers uninitialised list_reverse_iterator
+                    assert( node_pointer != nullptr ); // covers uninitialized list_reverse_iterator
                     node_pointer = node_pointer->previous;
                     return *this;
                 }
@@ -963,11 +962,11 @@ template <class element_type, class element_allocator_type = std::allocator<elem
         group_vector groups;
         node_base end_node;
         node_pointer_type
-        last_endpoint; // last_endpoint being NULL means no elements have been constructed, but there may still be groups available due to clear() or reservee()
+        last_endpoint; // last_endpoint being NULL means no elements have been constructed, but there may still be groups available due to clear() or reserve()
         iterator end_iterator; // end_iterator is always the last entry point in last group in list (or one past the end of group)
         iterator begin_iterator;
 
-        // Packaging the group allocator with least-used member variables, for empty-base-class optimisation
+        // Packaging the group allocator with least-used member variables, for empty-base-class optimization
         struct ebco_pair1 : node_pointer_allocator_type {
             size_type total_number_of_elements;
             explicit ebco_pair1( const size_type total_num_elements ) noexcept: total_number_of_elements(
@@ -1909,8 +1908,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                 stored_instance( function_instance )
             {}
 
-            sort_dereferencer() noexcept
-            {}
+            sort_dereferencer() noexcept = default;
 
             inline bool operator()( const node_pointer_type first, const node_pointer_type second ) {
                 return stored_instance( first->element, second->element );
@@ -2282,8 +2280,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                 value( store_value )
             {}
 
-            eq_to() noexcept
-            {}
+            eq_to() noexcept = default;
 
             inline bool operator()( const element_type compare_value ) const noexcept {
                 return value == compare_value;
@@ -2332,7 +2329,7 @@ template <class element_type, class element_allocator_type = std::allocator<elem
                             if( current_node->next != nullptr && predicate( current_node->element ) ) {
                                 erase( current_node );
 
-                                // ie. group will be empty (and removed) now - nothing left to iterate over
+                                // i.e. group will be empty (and removed) now - nothing left to iterate over
                                 if( --num_elements == 0 ) {
                                     // As current group has been removed, subsequent groups have already shifted back by one, hence, the ++ to the current group in the for loop is unnecessary, and negated here
                                     --current_group;
@@ -2470,4 +2467,4 @@ inline void swap( list<swap_element_type, swap_element_allocator_type> &a,
 #undef LIST_ALLOCATE_INITIALIZATION
 #undef LIST_DEALLOCATE
 
-#endif // LIST_H
+#endif // CATA_SRC_LIST_H

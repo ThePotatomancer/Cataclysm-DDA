@@ -1,12 +1,12 @@
 #if !defined(TILES) && defined(_WIN32)
 #define UNICODE 1
+#ifndef CMAKE
 #define _UNICODE 1
-
+#endif
 #include "cursesport.h" // IWYU pragma: associated
 
 #include <cstdlib>
 #include <fstream>
-#include <sstream>
 
 #include "cursesdef.h"
 #include "options.h"
@@ -25,6 +25,8 @@
 #include "font_loader.h"
 #include "platform_win.h"
 #include "mmsystem.h"
+#include "ui_manager.h"
+#include "wcwidth.h"
 
 //***********************************
 //Globals                           *
@@ -79,7 +81,7 @@ static std::wstring widen( const std::string &s )
 static bool WinCreate()
 {
     // Get current process handle
-    WindowINST = GetModuleHandle( 0 );
+    WindowINST = GetModuleHandle( nullptr );
     std::string title = string_format( "Cataclysm: Dark Days Ahead - %s", getVersionString() );
 
     // Register window class
@@ -92,7 +94,7 @@ static bool WinCreate()
     // Get first resource
     WindowClassType.hIcon         = LoadIcon( WindowINST, MAKEINTRESOURCE( 0 ) );
     WindowClassType.hIconSm       = LoadIcon( WindowINST, MAKEINTRESOURCE( 0 ) );
-    WindowClassType.hCursor       = LoadCursor( NULL, IDC_ARROW );
+    WindowClassType.hCursor       = LoadCursor( nullptr, IDC_ARROW );
     WindowClassType.lpszClassName = szWindowClass;
     if( !RegisterClassExW( &WindowClassType ) ) {
         return false;
@@ -119,35 +121,32 @@ static bool WinCreate()
                                     WindowX, WindowY,
                                     WndRect.right - WndRect.left,
                                     WndRect.bottom - WndRect.top,
-                                    0, 0, WindowINST, NULL );
-    if( WindowHandle == 0 ) {
-        return false;
-    }
+                                    nullptr, nullptr, WindowINST, nullptr );
+    return WindowHandle != nullptr;
 
-    return true;
 }
 
 // Unregisters, releases the DC if needed, and destroys the window.
 static void WinDestroy()
 {
-    if( ( WindowDC != NULL ) && ( ReleaseDC( WindowHandle, WindowDC ) == 0 ) ) {
-        WindowDC = 0;
+    if( ( WindowDC != nullptr ) && ( ReleaseDC( WindowHandle, WindowDC ) == 0 ) ) {
+        WindowDC = nullptr;
     }
-    if( ( !WindowHandle == 0 ) && ( !( DestroyWindow( WindowHandle ) ) ) ) {
-        WindowHandle = 0;
+    if( WindowHandle != nullptr && ( !( DestroyWindow( WindowHandle ) ) ) ) {
+        WindowHandle = nullptr;
     }
     if( !( UnregisterClassW( szWindowClass, WindowINST ) ) ) {
-        WindowINST = 0;
+        WindowINST = nullptr;
     }
 }
 
 // Creates a backbuffer to prevent flickering
 static void create_backbuffer()
 {
-    if( WindowDC != NULL ) {
+    if( WindowDC != nullptr ) {
         ReleaseDC( WindowHandle, WindowDC );
     }
-    if( backbuffer != NULL ) {
+    if( backbuffer != nullptr ) {
         ReleaseDC( WindowHandle, backbuffer );
     }
     WindowDC   = GetDC( WindowHandle );
@@ -163,7 +162,9 @@ static void create_backbuffer()
     bmi.bmiHeader.biSizeImage    = WindowWidth * WindowHeight * 1;
     bmi.bmiHeader.biClrUsed      = color_loader<RGBQUAD>::COLOR_NAMES_COUNT; // Colors in the palette
     bmi.bmiHeader.biClrImportant = color_loader<RGBQUAD>::COLOR_NAMES_COUNT; // Colors in the palette
-    backbit = CreateDIBSection( 0, &bmi, DIB_RGB_COLORS, ( void ** ) &dcbits, NULL, 0 );
+    backbit = CreateDIBSection( nullptr, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>( &dcbits ),
+                                nullptr,
+                                0 );
     DeleteObject( SelectObject( backbuffer, backbit ) ); //load the buffer into DC
 }
 
@@ -188,6 +189,7 @@ bool handle_resize( int, int )
             throw std::runtime_error( "SetDIBColorTable failed" );
         }
         catacurses::refresh();
+        ui_manager::screen_resized();
     }
 
     return true;
@@ -325,7 +327,8 @@ LRESULT CALLBACK ProcessMessages( HWND__ *hWnd, unsigned int Msg,
                 return 0;
             }
 
-            if( !GetAsyncKeyState( VK_LMENU ) && alt_down ) { // LeftAlt hack
+            // LeftAlt hack
+            if( !GetAsyncKeyState( VK_LMENU ) && alt_down ) {
                 if( int code = end_alt_code() ) {
                     lastchar = code;
                 }
@@ -338,11 +341,12 @@ LRESULT CALLBACK ProcessMessages( HWND__ *hWnd, unsigned int Msg,
             return 0;
 
         case WM_SYSCHAR:
-            add_alt_code( ( char )wParam );
+            add_alt_code( static_cast<char>( wParam ) );
             return 0;
 
         case WM_SYSKEYDOWN:
-            if( GetAsyncKeyState( VK_LMENU ) && !alt_down ) { // LeftAlt hack
+            // LeftAlt hack
+            if( GetAsyncKeyState( VK_LMENU ) && !alt_down ) {
                 begin_alt_code();
             }
             break;
@@ -369,7 +373,10 @@ LRESULT CALLBACK ProcessMessages( HWND__ *hWnd, unsigned int Msg,
 
         case WM_PAINT:
             BitBlt( WindowDC, 0, 0, WindowWidth, WindowHeight, backbuffer, 0, 0, SRCCOPY );
-            ValidateRect( WindowHandle, NULL );
+            ui_manager::invalidate( rectangle( point_zero, point( getmaxx( catacurses::stdscr ),
+                                               getmaxy( catacurses::stdscr ) ) ) );
+            ui_manager::redraw();
+            ValidateRect( WindowHandle, nullptr );
             return 0;
 
         case WM_DESTROY:
@@ -414,13 +421,13 @@ void cata_cursesport::curses_drawwindow( const catacurses::window &w )
     int drawx = 0;
     int drawy = 0;
     wchar_t tmp;
-    RECT update = {win->x * fontwidth, -1,
-                   ( win->x + win->width ) *fontwidth, -1
+    RECT update = {win->pos.x * fontwidth, -1,
+                   ( win->pos.x + win->width ) *fontwidth, -1
                   };
 
     for( j = 0; j < win->height; j++ ) {
         if( win->line[j].touched ) {
-            update.bottom = ( win->y + j + 1 ) * fontheight;
+            update.bottom = ( win->pos.y + j + 1 ) * fontheight;
             if( update.top == -1 ) {
                 update.top = update.bottom - fontheight;
             }
@@ -430,10 +437,11 @@ void cata_cursesport::curses_drawwindow( const catacurses::window &w )
             for( i = 0; i < win->width; i++ ) {
                 const cursecell &cell = win->line[j].chars[i];
                 if( cell.ch.empty() ) {
-                    continue; // second cell of a multi-cell character
+                    // second cell of a multi-cell character
+                    continue;
                 }
-                drawx = ( ( win->x + i ) * fontwidth );
-                drawy = ( ( win->y + j ) * fontheight ); //-j;
+                drawx = ( ( win->pos.x + i ) * fontwidth );
+                drawy = ( ( win->pos.y + j ) * fontheight ); //-j;
                 if( drawx + fontwidth > WindowWidth || drawy + fontheight > WindowHeight ) {
                     // Outside of the display area, would not render anyway
                     continue;
@@ -462,10 +470,10 @@ void cata_cursesport::curses_drawwindow( const catacurses::window &w )
                     }
                     if( tmp ) {
                         const std::wstring utf16 = widen( cell.ch );
-                        ExtTextOutW( backbuffer, drawx, drawy, 0, NULL, utf16.c_str(), utf16.length(), NULL );
+                        ExtTextOutW( backbuffer, drawx, drawy, 0, nullptr, utf16.c_str(), utf16.length(), nullptr );
                     }
                 } else {
-                    switch( ( unsigned char )win->line[j].chars[i].ch[0] ) {
+                    switch( static_cast<unsigned char>( win->line[j].chars[i].ch[0] ) ) {
                         // box bottom/top side (horizontal line)
                         case LINE_OXOX_C:
                             HorzLineDIB( drawx, drawy + halfheight, drawx + fontwidth, 1, FG );
@@ -529,7 +537,7 @@ void cata_cursesport::curses_drawwindow( const catacurses::window &w )
     // We drew the window, mark it as so
     win->draw = false;
     if( update.top != -1 ) {
-        RedrawWindow( WindowHandle, &update, NULL, RDW_INVALIDATE | RDW_UPDATENOW );
+        RedrawWindow( WindowHandle, &update, nullptr, RDW_INVALIDATE | RDW_UPDATENOW );
     }
 }
 
@@ -537,7 +545,7 @@ void cata_cursesport::curses_drawwindow( const catacurses::window &w )
 static void CheckMessages()
 {
     MSG msg;
-    while( PeekMessage( &msg, 0, 0, 0, PM_REMOVE ) ) {
+    while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) ) {
         TranslateMessage( &msg );
         DispatchMessage( &msg );
     }
@@ -602,8 +610,9 @@ void catacurses::init_interface()
     if( SetCurrentDirectoryW( L"data\\font" ) ) {
         WIN32_FIND_DATAW findData;
         for( HANDLE findFont = FindFirstFileW( L".\\*", &findData ); findFont != INVALID_HANDLE_VALUE; ) {
-            if( !( findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) ) { // Skip folders
-                AddFontResourceExW( findData.cFileName, FR_PRIVATE, NULL );
+            // Skip folders
+            if( !( findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) ) {
+                AddFontResourceExW( findData.cFileName, FR_PRIVATE, nullptr );
             }
             if( !FindNextFileW( findFont, &findData ) ) {
                 FindClose( findFont );
@@ -614,9 +623,10 @@ void catacurses::init_interface()
     }
 
     // Use desired font, if possible
+    assert( !fl.typeface.empty() );
     font = CreateFontW( fontheight, fontwidth, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                         DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                        PROOF_QUALITY, FF_MODERN, widen( fl.typeface ).c_str() );
+                        PROOF_QUALITY, FF_MODERN, widen( fl.typeface.front() ).c_str() );
 
     // Transparent font backgrounds
     SetBkMode( backbuffer, TRANSPARENT );
@@ -629,7 +639,7 @@ void catacurses::init_interface()
     }
     init_colors();
 
-    stdscr = newwin( get_option<int>( "TERMINAL_Y" ), get_option<int>( "TERMINAL_X" ), 0, 0 );
+    stdscr = newwin( get_option<int>( "TERMINAL_Y" ), get_option<int>( "TERMINAL_X" ), point_zero );
     //newwin calls `new WINDOW`, and that will throw, but not return nullptr.
 
     initialized = true;
@@ -639,7 +649,7 @@ void catacurses::init_interface()
 static uint64_t GetPerfCount()
 {
     uint64_t Count;
-    QueryPerformanceCounter( ( PLARGE_INTEGER )&Count );
+    QueryPerformanceCounter( reinterpret_cast<PLARGE_INTEGER>( &Count ) );
     return Count;
 }
 
@@ -649,9 +659,9 @@ input_event input_manager::get_input_event()
     // see, e.g., http://linux.die.net/man/3/getch
     // so although it's non-obvious, that refresh() call (and maybe InvalidateRect?) IS supposed to be there
     uint64_t Frequency;
-    QueryPerformanceFrequency( ( PLARGE_INTEGER )&Frequency );
+    QueryPerformanceFrequency( reinterpret_cast<PLARGE_INTEGER>( &Frequency ) );
     wrefresh( catacurses::stdscr );
-    InvalidateRect( WindowHandle, NULL, true );
+    InvalidateRect( WindowHandle, nullptr, true );
     lastchar = ERR;
     if( inputdelay < 0 ) {
         for( ; lastchar == ERR; Sleep( 1 ) ) {
@@ -679,16 +689,17 @@ input_event input_manager::get_input_event()
     input_event rval;
     if( lastchar == ERR ) {
         if( input_timeout > 0 ) {
-            rval.type = CATA_INPUT_TIMEOUT;
+            rval.type = input_event_t::timeout;
         } else {
-            rval.type = CATA_INPUT_ERROR;
+            rval.type = input_event_t::error;
         }
     } else {
-        if( lastchar == 127 ) { // == Unicode DELETE
+        // == Unicode DELETE
+        if( lastchar == 127 ) {
             previously_pressed_key = KEY_BACKSPACE;
-            return input_event( KEY_BACKSPACE, CATA_INPUT_KEYBOARD );
+            return input_event( KEY_BACKSPACE, input_event_t::keyboard );
         }
-        rval.type = CATA_INPUT_KEYBOARD;
+        rval.type = input_event_t::keyboard;
         rval.text = utf32_to_utf8( lastchar );
         previously_pressed_key = lastchar;
         // for compatibility only add the first byte, not the code point
@@ -716,7 +727,7 @@ void catacurses::endwin()
     DeleteObject( font );
     WinDestroy();
     // Unload it
-    RemoveFontResourceExA( "data\\termfont", FR_PRIVATE, NULL );
+    RemoveFontResourceExA( "data\\font", FR_PRIVATE, nullptr );
 }
 
 template<>
@@ -747,6 +758,11 @@ void cata_cursesport::handle_additional_window_clear( WINDOW * )
 int get_scaling_factor()
 {
     return 1;
+}
+
+HWND getWindowHandle()
+{
+    return WindowHandle;
 }
 
 #endif

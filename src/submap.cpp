@@ -1,13 +1,17 @@
 #include "submap.h"
 
 #include <algorithm>
-#include <memory>
-#include <iterator>
 #include <array>
+#include <iterator>
+#include <memory>
+#include <utility>
 
+#include "basecamp.h"
+#include "int_id.h"
 #include "mapdata.h"
-#include "trap.h"
 #include "tileray.h"
+#include "trap.h"
+#include "vehicle.h"
 
 template<int sx, int sy>
 void maptile_soa<sx, sy>::swap_soa_tile( const point &p1, const point &p2 )
@@ -35,8 +39,6 @@ void maptile_soa<sx, sy>::swap_soa_tile( const point &p, maptile_soa<1, 1> &othe
 
 submap::submap()
 {
-    constexpr size_t elements = SEEX * SEEY;
-
     std::uninitialized_fill_n( &ter[0][0], elements, t_null );
     std::uninitialized_fill_n( &frn[0][0], elements, f_null );
     std::uninitialized_fill_n( &lum[0][0], elements, 0 );
@@ -45,6 +47,11 @@ submap::submap()
 
     is_uniform = false;
 }
+
+submap::submap( submap && ) = default;
+submap::~submap() = default;
+
+submap &submap::operator=( submap && ) = default;
 
 static const std::string COSMETICS_GRAFFITI( "GRAFFITI" );
 static const std::string COSMETICS_SIGNAGE( "SIGNAGE" );
@@ -148,6 +155,68 @@ void submap::delete_signage( const point &p )
     }
 }
 
+void submap::update_legacy_computer()
+{
+    if( legacy_computer ) {
+        for( int x = 0; x < SEEX; ++x ) {
+            for( int y = 0; y < SEEY; ++y ) {
+                if( ter[x][y] == t_console ) {
+                    computers.emplace( point( x, y ), *legacy_computer );
+                }
+            }
+        }
+        legacy_computer.reset();
+    }
+}
+
+bool submap::has_computer( const point &p ) const
+{
+    return computers.find( p ) != computers.end() || ( legacy_computer && ter[p.x][p.y] == t_console );
+}
+
+const computer *submap::get_computer( const point &p ) const
+{
+    // the returned object will not get modified (should not, at least), so we
+    // don't yet need to update to std::map
+    const auto it = computers.find( p );
+    if( it != computers.end() ) {
+        return &it->second;
+    }
+    if( legacy_computer && ter[p.x][p.y] == t_console ) {
+        return legacy_computer.get();
+    }
+    return nullptr;
+}
+
+computer *submap::get_computer( const point &p )
+{
+    // need to update to std::map first so modifications to the returned object
+    // only affects the exact point p
+    update_legacy_computer();
+    const auto it = computers.find( p );
+    if( it != computers.end() ) {
+        return &it->second;
+    }
+    return nullptr;
+}
+
+void submap::set_computer( const point &p, const computer &c )
+{
+    update_legacy_computer();
+    const auto it = computers.find( p );
+    if( it != computers.end() ) {
+        it->second = c;
+    } else {
+        computers.emplace( p, c );
+    }
+}
+
+void submap::delete_computer( const point &p )
+{
+    update_legacy_computer();
+    computers.erase( p );
+}
+
 bool submap::contains_vehicle( vehicle *veh )
 {
     const auto match = std::find_if(
@@ -222,4 +291,10 @@ void submap::rotate( int turns )
         elem->face = elem->turn_dir;
         elem->precalc_mounts( 0, elem->turn_dir, elem->pivot_anchor[0] );
     }
+
+    std::map<point, computer> rot_comp;
+    for( auto &elem : computers ) {
+        rot_comp.emplace( rotate_point( elem.first ), elem.second );
+    }
+    computers = rot_comp;
 }

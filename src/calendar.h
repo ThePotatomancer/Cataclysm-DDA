@@ -1,74 +1,29 @@
 #pragma once
-#ifndef CALENDAR_H
-#define CALENDAR_H
+#ifndef CATA_SRC_CALENDAR_H
+#define CATA_SRC_CALENDAR_H
 
 #include <string>
-#include <iosfwd>
 #include <utility>
 #include <vector>
 
+class JsonIn;
+class JsonOut;
 class time_duration;
 class time_point;
-class JsonOut;
-class JsonIn;
-
-/**
- * Convert minutes to one-second turns
- *
- * @param n Time in minutes
- * @returns Time in one-second turns
- *
- */
-constexpr int MINUTES( int n )
-{
-    return n * 60;
-}
-
-/**
- * Convert hours to one-second turns
- *
- * @param n Time in hours
- * @returns Time in one-second turns
- */
-constexpr int HOURS( int n )
-{
-    return n * MINUTES( 60 );
-}
-
-/**
- * Convert days to one-second turns
- *
- * @param n Time in days
- * @returns Time in one-second turns
- */
-constexpr int DAYS( int n )
-{
-    return n * HOURS( 24 );
-}
-
-/**
- * Convert ticks to seconds.
- *
- * @param ticks number of ticks
- * @returns Time in seconds
- */
-constexpr int TICKS_TO_SECONDS( int ticks )
-{
-    return static_cast<int>( static_cast<float>( ticks ) / 100 );
-}
-
-/** How much light moon provides per lit-up quarter (Full-moon light is four times this value) */
-#define MOONLIGHT_PER_QUARTER 2.25
-
-/** How much light is provided in full daylight */
-#define DAYLIGHT_LEVEL 100
+template<typename T> struct enum_traits;
 
 /** Real world seasons */
 enum season_type {
     SPRING = 0,
     SUMMER = 1,
     AUTUMN = 2,
-    WINTER = 3
+    WINTER = 3,
+    NUM_SEASONS
+};
+
+template<>
+struct enum_traits<season_type> {
+    static constexpr season_type last = season_type::NUM_SEASONS;
 };
 
 /** Phases of the moon */
@@ -134,7 +89,7 @@ time_duration year_length();
 
 /** @returns Time of a season (configured in current world settings) */
 time_duration season_length();
-void set_season_length( const int dur );
+void set_season_length( int dur );
 
 /// @returns relative length of game season to real life season.
 float season_ratio();
@@ -150,6 +105,7 @@ float season_from_default_ratio();
 std::string name_season( season_type s );
 
 extern time_point start_of_cataclysm;
+extern time_point start_of_game;
 extern time_point turn;
 extern season_type initial_season;
 
@@ -186,15 +142,15 @@ template<typename T>
 constexpr T to_turn( const time_point &point );
 
 template<typename T>
-constexpr time_duration operator/( const time_duration &lhs, const T rhs );
+constexpr time_duration operator/( const time_duration &lhs, T rhs );
 template<typename T>
-inline time_duration &operator/=( time_duration &lhs, const T rhs );
+inline time_duration &operator/=( time_duration &lhs, T rhs );
 template<typename T>
-constexpr time_duration operator*( const time_duration &lhs, const T rhs );
+constexpr time_duration operator*( const time_duration &lhs, T rhs );
 template<typename T>
-constexpr time_duration operator*( const T lhs, const time_duration &rhs );
+constexpr time_duration operator*( T lhs, const time_duration &rhs );
 template<typename T>
-inline time_duration &operator*=( time_duration &lhs, const T rhs );
+inline time_duration &operator*=( time_duration &lhs, T rhs );
 
 /**
  * A duration defined as a number of specific time units.
@@ -261,6 +217,10 @@ class time_duration
         template<typename T>
         static constexpr time_duration from_days( const T d ) {
             return from_hours( d * 24 );
+        }
+        template<typename T>
+        static constexpr time_duration from_weeks( const T d ) {
+            return from_days( d * 7 );
         }
         /**@}*/
 
@@ -401,6 +361,10 @@ constexpr time_duration operator"" _days( const unsigned long long int v )
 {
     return time_duration::from_days( v );
 }
+constexpr time_duration operator"" _weeks( const unsigned long long int v )
+{
+    return time_duration::from_weeks( v );
+}
 /**@}*/
 
 /**
@@ -412,12 +376,12 @@ constexpr time_duration operator"" _days( const unsigned long long int v )
  */
 std::string to_string( const time_duration &d );
 
-enum class clipped_align {
+enum class clipped_align : int {
     none,
     right,
 };
 
-enum class clipped_unit {
+enum class clipped_unit : int {
     forever,
     second,
     minute,
@@ -489,54 +453,46 @@ class time_point
             return point.turn_;
         }
 
+        friend constexpr inline bool operator<( const time_point &lhs, const time_point &rhs ) {
+            return to_turn<int>( lhs ) < to_turn<int>( rhs );
+        }
+        friend constexpr inline bool operator<=( const time_point &lhs, const time_point &rhs ) {
+            return to_turn<int>( lhs ) <= to_turn<int>( rhs );
+        }
+        friend constexpr inline bool operator>( const time_point &lhs, const time_point &rhs ) {
+            return to_turn<int>( lhs ) > to_turn<int>( rhs );
+        }
+        friend constexpr inline bool operator>=( const time_point &lhs, const time_point &rhs ) {
+            return to_turn<int>( lhs ) >= to_turn<int>( rhs );
+        }
+        friend constexpr inline bool operator==( const time_point &lhs, const time_point &rhs ) {
+            return to_turn<int>( lhs ) == to_turn<int>( rhs );
+        }
+        friend constexpr inline bool operator!=( const time_point &lhs, const time_point &rhs ) {
+            return to_turn<int>( lhs ) != to_turn<int>( rhs );
+        }
+
+        friend constexpr inline time_duration operator-(
+            const time_point &lhs, const time_point &rhs ) {
+            return time_duration::from_turns( to_turn<int>( lhs ) - to_turn<int>( rhs ) );
+        }
+        friend constexpr inline time_point operator+(
+            const time_point &lhs, const time_duration &rhs ) {
+            return time_point::from_turn( to_turn<int>( lhs ) + to_turns<int>( rhs ) );
+        }
+        friend time_point inline &operator+=( time_point &lhs, const time_duration &rhs ) {
+            return lhs = time_point::from_turn( to_turn<int>( lhs ) + to_turns<int>( rhs ) );
+        }
+        friend constexpr inline time_point operator-(
+            const time_point &lhs, const time_duration &rhs ) {
+            return time_point::from_turn( to_turn<int>( lhs ) - to_turns<int>( rhs ) );
+        }
+        friend time_point inline &operator-=( time_point &lhs, const time_duration &rhs ) {
+            return lhs = time_point::from_turn( to_turn<int>( lhs ) - to_turns<int>( rhs ) );
+        }
+
         // TODO: implement minutes_of_hour and so on and use it.
 };
-
-constexpr inline bool operator<( const time_point &lhs, const time_point &rhs )
-{
-    return to_turn<int>( lhs ) < to_turn<int>( rhs );
-}
-constexpr inline bool operator<=( const time_point &lhs, const time_point &rhs )
-{
-    return to_turn<int>( lhs ) <= to_turn<int>( rhs );
-}
-constexpr inline bool operator>( const time_point &lhs, const time_point &rhs )
-{
-    return to_turn<int>( lhs ) > to_turn<int>( rhs );
-}
-constexpr inline bool operator>=( const time_point &lhs, const time_point &rhs )
-{
-    return to_turn<int>( lhs ) >= to_turn<int>( rhs );
-}
-constexpr inline bool operator==( const time_point &lhs, const time_point &rhs )
-{
-    return to_turn<int>( lhs ) == to_turn<int>( rhs );
-}
-constexpr inline bool operator!=( const time_point &lhs, const time_point &rhs )
-{
-    return to_turn<int>( lhs ) != to_turn<int>( rhs );
-}
-
-constexpr inline time_duration operator-( const time_point &lhs, const time_point &rhs )
-{
-    return time_duration::from_turns( to_turn<int>( lhs ) - to_turn<int>( rhs ) );
-}
-constexpr inline time_point operator+( const time_point &lhs, const time_duration &rhs )
-{
-    return time_point::from_turn( to_turn<int>( lhs ) + to_turns<int>( rhs ) );
-}
-time_point inline &operator+=( time_point &lhs, const time_duration &rhs )
-{
-    return lhs = time_point::from_turn( to_turn<int>( lhs ) + to_turns<int>( rhs ) );
-}
-constexpr inline time_point operator-( const time_point &lhs, const time_duration &rhs )
-{
-    return time_point::from_turn( to_turn<int>( lhs ) - to_turns<int>( rhs ) );
-}
-time_point inline &operator-=( time_point &lhs, const time_duration &rhs )
-{
-    return lhs = time_point::from_turn( to_turn<int>( lhs ) - to_turns<int>( rhs ) );
-}
 
 inline time_duration time_past_midnight( const time_point &p )
 {
@@ -574,22 +530,35 @@ season_type season_of_year( const time_point &p );
 std::string to_string( const time_point &p );
 /// @returns The time point formatted to be shown to the player. Contains only the time of day, not the year, day or season.
 std::string to_string_time_of_day( const time_point &p );
-/** Returns the current light level of the moon. */
+/** Returns the default duration of a lunar month (duration between syzygies) */
+time_duration lunar_month();
+/** Returns the current phase of the moon. */
 moon_phase get_moon_phase( const time_point &p );
 /** Returns the current sunrise time based on the time of year. */
 time_point sunrise( const time_point &p );
 /** Returns the current sunset time based on the time of year. */
 time_point sunset( const time_point &p );
-/** Returns whether it's currently after sunset + TWILIGHT_SECONDS or before sunrise - TWILIGHT_SECONDS. */
+/** Returns the time it gets light based on sunrise */
+time_point daylight_time( const time_point &p );
+/** Returns the time it gets dark based on sunset */
+time_point night_time( const time_point &p );
+/** Returns true if it's currently night time - after dusk and before dawn. */
 bool is_night( const time_point &p );
-/** Returns true if it's currently after sunset and before sunset + TWILIGHT_SECONDS. */
-bool is_sunset_now( const time_point &p );
-/** Returns true if it's currently after sunrise and before sunrise + TWILIGHT_SECONDS. */
-bool is_sunrise_now( const time_point &p );
+/** Returns true if it's currently day time - after dawn and before dusk. */
+bool is_day( const time_point &p );
+/** Returns true if it's currently dusk - between sunset and and twilight_duration after sunset. */
+bool is_dusk( const time_point &p );
+/** Returns true if it's currently dawn - between sunrise and twilight_duration after sunrise. */
+bool is_dawn( const time_point &p );
 /** Returns the current seasonally-adjusted maximum daylight level */
 double current_daylight_level( const time_point &p );
-/** Returns the current sunlight or moonlight level through the preceding functions. */
-float sunlight( const time_point &p );
+/** How much light is provided in full daylight */
+double default_daylight_level();
+/** Returns the current sunlight or moonlight level through the preceding functions.
+ *  By default, returns sunlight level for vision, with moonlight providing a measurable amount
+ *  of light.  with vision == false, returns sunlight for solar panel purposes, and moonlight
+ *  provides 0 light */
+float sunlight( const time_point &p, bool vision = true );
 
 enum class weekdays : int {
     SUNDAY = 0,
@@ -603,4 +572,4 @@ enum class weekdays : int {
 
 weekdays day_of_week( const time_point &p );
 
-#endif
+#endif // CATA_SRC_CALENDAR_H

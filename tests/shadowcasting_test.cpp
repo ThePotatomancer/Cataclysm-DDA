@@ -1,20 +1,19 @@
+#include <array>
 #include <chrono>
 #include <cstdio>
-#include <random>
-#include <array>
 #include <functional>
 #include <memory>
-#include <type_traits>
+#include <random>
 #include <vector>
 
 #include "catch/catch.hpp"
-#include "line.h" // For rl_dist.
-#include "map.h"
-#include "rng.h"
-#include "shadowcasting.h"
 #include "game_constants.h"
 #include "lightmap.h"
+#include "line.h" // For rl_dist.
+#include "map.h"
 #include "point.h"
+#include "rng.h"
+#include "shadowcasting.h"
 
 // Constants setting the ratio of set to unset tiles.
 constexpr unsigned int NUMERATOR = 1;
@@ -33,7 +32,6 @@ static void oldCastLight( float ( &output_cache )[MAPSIZE * SEEX][MAPSIZE * SEEY
         return;
     }
     bool blocked = false;
-    static constexpr tripoint origin( 0, 0, 0 );
     tripoint delta;
     for( int distance = row; distance <= radius && !blocked; distance++ ) {
         delta.y = -distance;
@@ -50,7 +48,7 @@ static void oldCastLight( float ( &output_cache )[MAPSIZE * SEEX][MAPSIZE * SEEY
             }
 
             //check if it's within the visible area and mark visible if so
-            if( rl_dist( origin, delta ) <= radius ) {
+            if( rl_dist( tripoint_zero, delta ) <= radius ) {
                 output_cache[currentX][currentY] = LIGHT_TRANSPARENCY_CLEAR;
             }
 
@@ -89,7 +87,7 @@ static bool bresenham_visibility_check(
     }
     bool visible = true;
     const int junk = 0;
-    bresenham( x, y, offsetX, offsetY, junk,
+    bresenham( point( x, y ), point( offsetX, offsetY ), junk,
     [&transparency_cache, &visible]( const point & new_point ) {
         if( transparency_cache[new_point.x][new_point.y] <=
             LIGHT_TRANSPARENCY_SOLID ) {
@@ -251,7 +249,7 @@ static void shadowcasting_runoff( const int iterations, const bool test_bresenha
     for( int i = 0; i < iterations; i++ ) {
         // Then the current algorithm.
         castLightAll<float, float, sight_calc, sight_check, update_light, accumulate_transparency>(
-            seen_squares_experiment, transparency_cache, offsetX, offsetY );
+            seen_squares_experiment, transparency_cache, point( offsetX, offsetY ) );
     }
     const auto end2 = std::chrono::high_resolution_clock::now();
 
@@ -304,7 +302,7 @@ static void shadowcasting_float_quad(
     for( int i = 0; i < iterations; i++ ) {
         castLightAll<float, four_quadrants, sight_calc, sight_check, update_light_quadrants,
                      accumulate_transparency>(
-                         lit_squares_quad, transparency_cache, offsetX, offsetY );
+                         lit_squares_quad, transparency_cache, point( offsetX, offsetY ) );
     }
     const auto end1 = std::chrono::high_resolution_clock::now();
 
@@ -313,7 +311,7 @@ static void shadowcasting_float_quad(
         // Then the current algorithm.
         castLightAll<float, float, sight_calc, sight_check, update_light,
                      accumulate_transparency>(
-                         lit_squares_float, transparency_cache, offsetX, offsetY );
+                         lit_squares_float, transparency_cache, point( offsetX, offsetY ) );
     }
     const auto end2 = std::chrono::high_resolution_clock::now();
 
@@ -359,7 +357,7 @@ static void shadowcasting_3d_2d( const int iterations )
     for( int i = 0; i < iterations; i++ ) {
         // First the control algorithm.
         castLightAll<float, float, sight_calc, sight_check, update_light, accumulate_transparency>(
-            seen_squares_control, transparency_cache, offsetX, offsetY );
+            seen_squares_control, transparency_cache, point( offsetX, offsetY ) );
     }
     const auto end1 = std::chrono::high_resolution_clock::now();
 
@@ -403,7 +401,6 @@ static void shadowcasting_3d_2d( const int iterations )
 
     REQUIRE( passed );
 }
-
 
 // T, O and V are 'T'ransparent, 'O'paque and 'V'isible.
 // X marks the player location, which is not set to visible by this algorithm.
@@ -462,7 +459,7 @@ static void run_spot_check( const grid_overlay &test_case, const grid_overlay &e
     }
 
     castLightAll<float, float, sight_calc, sight_check, update_light, accumulate_transparency>(
-        seen_squares, transparency_cache, ORIGIN.x, ORIGIN.y );
+        seen_squares, transparency_cache, ORIGIN );
 
     // Compares the whole grid, but out-of-bounds compares will de-facto pass.
     for( int y = 0; y < expected_result.height(); ++y ) {
@@ -546,6 +543,7 @@ TEST_CASE( "shadowcasting_pillar_behavior_cardinally_adjacent", "[shadowcasting]
 
 TEST_CASE( "shadowcasting_pillar_behavior_2_1_diagonal_gap", "[shadowcasting]" )
 {
+    // NOLINTNEXTLINE(cata-use-named-point-constants)
     grid_overlay test_case( { 1, 1 }, LIGHT_TRANSPARENCY_CLEAR );
     test_case.data = {
         {T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T},
@@ -559,6 +557,7 @@ TEST_CASE( "shadowcasting_pillar_behavior_2_1_diagonal_gap", "[shadowcasting]" )
         {T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T}
     };
 
+    // NOLINTNEXTLINE(cata-use-named-point-constants)
     grid_overlay expected_results( { 1, 1 }, LIGHT_TRANSPARENCY_CLEAR );
     expected_results.data = {
         {V, V, V, V, V, V, V, V, V, V, V, V, V, V, V, V, V, V},

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef ARTIFACT_H
-#define ARTIFACT_H
+#ifndef CATA_SRC_ARTIFACT_H
+#define CATA_SRC_ARTIFACT_H
 
 #include <string>
 
@@ -10,6 +10,7 @@
 class JsonObject;
 class JsonOut;
 class item;
+template<typename T> struct enum_traits;
 
 enum art_effect_active : int {
     AEA_NULL = 0,
@@ -52,6 +53,11 @@ enum art_effect_active : int {
     NUM_AEAS
 };
 
+template<>
+struct enum_traits<art_effect_active> {
+    static constexpr art_effect_active last = art_effect_active::NUM_AEAS;
+};
+
 enum art_charge : int {
     ARTC_NULL,    // Never recharges!
     ARTC_TIME,    // Very slowly recharges with time
@@ -61,6 +67,11 @@ enum art_charge : int {
     ARTC_FATIGUE, // Creates fatigue to recharge
     ARTC_PORTAL,  // Consumes portals
     NUM_ARTCS
+};
+
+template<>
+struct enum_traits<art_charge> {
+    static constexpr art_charge last = art_charge::NUM_ARTCS;
 };
 
 enum art_charge_req : int {
@@ -74,16 +85,21 @@ enum art_charge_req : int {
     NUM_ACRS
 };
 
+template<>
+struct enum_traits<art_charge_req> {
+    static constexpr art_charge_req last = art_charge_req::NUM_ACRS;
+};
+
 /* CLASSES */
 
 class it_artifact_tool : public itype
 {
     public:
         void serialize( JsonOut &json ) const;
-        void deserialize( JsonObject &jo );
+        void deserialize( const JsonObject &jo );
 
         it_artifact_tool();
-        it_artifact_tool( JsonObject &jo );
+        it_artifact_tool( const JsonObject &jo );
         it_artifact_tool( const itype &base ) : itype( base ) {}
 
         void create_name( const std::string &type );
@@ -94,10 +110,10 @@ class it_artifact_armor : public itype
 {
     public:
         void serialize( JsonOut &json ) const;
-        void deserialize( JsonObject &jo );
+        void deserialize( const JsonObject &jo );
 
         it_artifact_armor();
-        it_artifact_armor( JsonObject &jo );
+        it_artifact_armor( const JsonObject &jo );
         it_artifact_armor( const itype &base ) : itype( base ) {}
 
         void create_name( const std::string &type );
@@ -105,9 +121,9 @@ class it_artifact_armor : public itype
 
 /* FUNCTIONS */
 
-std::string new_artifact();
-std::string new_natural_artifact( artifact_natural_property prop );
-std::string architects_cube();
+itype_id new_artifact();
+itype_id new_natural_artifact( artifact_natural_property prop );
+itype_id architects_cube();
 
 // note: needs to be called by main() before MAPBUFFER.load
 void load_artifacts( const std::string &path );
@@ -116,4 +132,4 @@ bool save_artifacts( const std::string &path );
 
 bool check_art_charge_req( item &it );
 
-#endif
+#endif // CATA_SRC_ARTIFACT_H
